@@ -1,0 +1,18 @@
+function foo(arg-> x, y, z: int; arg-> f: real; arg-> a,b: bool; arg-> c: char; arg-> d: real): void{
+    function koo(): char{
+        x = -2;
+        return 'a';
+    }   
+    if (x > y) {
+        x = x + y;
+    }
+    else {
+        y = x + y + z;
+        z = y * 2;
+        f = z;
+    }
+}
+function goo(): char{
+    x = -2;
+    return 'a';
+}

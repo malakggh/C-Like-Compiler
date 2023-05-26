@@ -1,0 +1,342 @@
+#################start#####################
+scope 9999:
+return type: NONE
+varArr: []
+funcsArr: [{koo, varArr: [a-INT, b-INT, c-INT, d-INT, Asdx-BOOL], CHAR}]
+
+#################end#####################
+stack:
+#################start#####################
+scope 0:
+return type: CHAR
+varArr: [a-INT, b-INT, c-INT, d-INT, Asdx-BOOL, x-INT, y-INT, z-INT, a1-BOOL, a2-BOOL, a3-BOOL]
+funcsArr: [{boo, varArr: [AA-INT, BB-INT, Asx2-BOOL], CHAR}]
+
+#################end#####################
+#################start#####################
+scope 1:
+return type: CHAR
+varArr: [AA-INT, BB-INT, Asx2-BOOL, abc-INT]
+funcsArr: [{boo2, varArr: [DD-REAL], REAL}, {boo2_bro, varArr: [DD_b-REAL], REAL}]
+
+#################end#####################
+#################start#####################
+scope 2:
+return type: REAL
+varArr: [DD_b-REAL, lol_b-INT]
+funcsArr: []
+
+#################end#####################
+#################start#####################
+scope 3:
+return type: REAL
+varArr: [DD-REAL, lol-INT]
+funcsArr: []
+
+#################end#####################
+#################start#####################
+scope 4:
+return type: NONE
+varArr: [z-INT]
+funcsArr: []
+
+#################end#####################
+    (FUNC
+        koo
+        (ARGS
+            (a,b,c,d,INT)
+            (Asdx,BOOL)
+        )
+        (RET CHAR)
+        (BODY
+                (FUNC
+                    boo
+                    (ARGS
+                        (AA,BB,INT)
+                        (Asx2,BOOL)
+                    )
+                    (RET CHAR)
+                    (BODY
+                            (FUNC
+                                boo2
+                                (ARGS
+                                    (DD,REAL)
+                                )
+                                (RET REAL)
+                                (BODY
+                                    (VAR 
+                                        lol
+                                        Type: INT
+                                    )
+                                    (IF
+                                        ( ==
+                                            x
+                                            5
+                                        )
+                                        (RET 1)
+                                    
+                                    )
+                                    (BLOCK
+                                        (VAR 
+                                            z
+                                            Type: INT
+                                        )
+                                        (IF
+                                            ( ==
+                                                x
+                                                5
+                                            )
+                                            (RET 1)
+                                        
+                                        )
+                                    )
+                                    (RET 0)
+                                )
+                            )
+                            (FUNC
+                                boo2_bro
+                                (ARGS
+                                    (DD_b,REAL)
+                                )
+                                (RET REAL)
+                                (BODY
+                                    (VAR 
+                                        lol_b
+                                        Type: INT
+                                    )
+                                    (IF
+                                        ( ==
+                                            x
+                                            5
+                                        )
+                                        (RET 1)
+                                    
+                                    )
+                                    (RET 0)
+                                )
+                            )
+                        (VAR 
+                            abc
+                            Type: INT
+                        )
+                        (IF
+                            ( ==
+                                x
+                                5
+                            )
+                            (RET 1)
+                        
+                        )
+                        (RET 0)
+                    )
+                )
+            (VAR 
+                x
+                y
+                (=z
+                    20)
+                
+                Type: INT
+            )
+            (VAR 
+                a1
+                a2
+                a3
+                Type: BOOL
+            )
+            (IF
+                ( ==
+                    x
+                    5
+                )
+                (RET 1)
+            
+            )
+            (RET 0)
+        )
+    )
+#################start#####################
+scope 9999:
+return type: NONE
+varArr: []
+funcsArr: [{koo, varArr: [a-INT, b-INT, c-INT, d-INT, Asdx-BOOL], CHAR}, {xoo, varArr: [AA2-INT, BB2-INT, Asx2-BOOL], CHAR}]
+
+#################end#####################
+stack:
+#################start#####################
+scope 0:
+return type: CHAR
+varArr: [AA2-INT, BB2-INT, Asx2-BOOL, abc-INT]
+funcsArr: [{xoo2, varArr: [DD2-REAL], REAL}]
+
+#################end#####################
+#################start#####################
+scope 1:
+return type: REAL
+varArr: [DD2-REAL, lol-INT]
+funcsArr: []
+
+#################end#####################
+    (FUNC
+        xoo
+        (ARGS
+            (AA2,BB2,INT)
+            (Asx2,BOOL)
+        )
+        (RET CHAR)
+        (BODY
+                (FUNC
+                    xoo2
+                    (ARGS
+                        (DD2,REAL)
+                    )
+                    (RET REAL)
+                    (BODY
+                        (VAR 
+                            lol
+                            Type: INT
+                        )
+                        (IF
+                            ( ==
+                                x
+                                5
+                            )
+                            (RET 1)
+                        
+                        )
+                        (RET 0)
+                    )
+                )
+            (VAR 
+                abc
+                Type: INT
+            )
+            (IF
+                ( ==
+                    x
+                    5
+                )
+                (RET 1)
+            
+            )
+            (RET 0)
+        )
+    )
+printing tree
+    (CODE
+        (FUNC
+            koo
+            (ARGS
+                (a,b,c,d,INT)
+                (Asdx,BOOL)
+            )
+            (RET CHAR)
+            (BODY
+                    (FUNC
+                        boo
+                        (ARGS
+                            (AA,BB,INT)
+                            (Asx2,BOOL)
+                        )
+                        (RET CHAR)
+                        (BODY
+                                (FUNC
+                                    boo2
+                                    (ARGS
+                                        (DD,REAL)
+                                    )
+                                    (RET REAL)
+                                    (BODY
+                                        (VAR 
+                                            lol
+                                            Type: INT
+                                        )
+                                        (IF
+                                            ( ==
+                                                x
+                                                5
+                                            )
+                                            (RET 1)
+                                        
+                                        )
+                                        (BLOCK
+                                            (VAR 
+                                                z
+                                                Type: INT
+                                            )
+                                            (IF
+                                                ( ==
+                                                    x
+                                                    5
+                                                )
+                                                (RET 1)
+                                            
+                                            )
+                                        )
+                                        (RET 0)
+                                    )
+                                )
+                                (FUNC
+                                    boo2_bro
+                                    (ARGS
+                                        (DD_b,REAL)
+                                    )
+                                    (RET REAL)
+                                    (BODY
+                                        (VAR 
+                                            lol_b
+                                            Type: INT
+                                        )
+                                        (IF
+                                            ( ==
+                                                x
+                                                5
+                                            )
+                                            (RET 1)
+                                        
+                                        )
+                                        (RET 0)
+                                    )
+                                )
+                            (VAR 
+                                abc
+                                Type: INT
+                            )
+                            (IF
+                                ( ==
+                                    x
+                                    5
+                                )
+                                (RET 1)
+                            
+                            )
+                            (RET 0)
+                        )
+                    )
+                (VAR 
+                    x
+                    y
+                    (=z
+                        20)
+                    
+                    Type: INT
+                )
+                (VAR 
+                    a1
+                    a2
+                    a3
+                    Type: BOOL
+                )
+                (IF
+                    ( ==
+                        x
+                        5
+                    )
+                    (RET 1)
+                
+                )
+                (RET 0)
+            )
+        )
+    koo)
+done printing tree

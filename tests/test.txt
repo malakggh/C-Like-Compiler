@@ -1,0 +1,20 @@
+function check3(arg->num:int):int{
+    if(num==2)
+        return -1;
+    else
+    {
+        if(num>=3 && num<=5 || num < 0)
+            print("A");
+        else{
+        }
+    }
+    return num+2;
+}
+
+function main3():void{
+    /* comment */
+	var i = 3:int;
+    string abc[30] = "test1";
+    check3(i);
+    check3(|x|);
+}

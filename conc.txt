@@ -1,0 +1,2 @@
+detect each block
+func -- > (BODY [comment_st code vars statements]

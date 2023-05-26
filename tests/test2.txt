@@ -1,0 +1,29 @@
+
+function hi(arg->a,b,c,d : int;arg->Asdx:bool): real{
+    var var1,var2,var3=45 : int;
+    var m = true, n :bool;
+    var c = 'a' : char;
+    string a[30], b[100] = "moshe";
+    if (x > y){
+        x = x + foo(x,3,7);
+    }else if(z < 3){
+        x = 1 + 2;
+    }
+    if (x > y)
+        x = x + foo(x,3,7);
+    return x;
+}
+function boo():void{
+    for( i = 0 ; i < 10 ; i = i + 1 )
+    
+        a = a + i;
+    
+    while (x != 5)
+        x = x + 1;
+    z = 7;
+    do {
+        a = a + i;
+        i = i + 1;
+    }while(i<=10);
+    
+}
