@@ -1,7 +1,9 @@
+/*
 function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
-    function boo(arg->AA,BB : int;arg->Asx2:bool): char{
-        function boo2(arg->DD: real): real{
-            var lol : int;
+    function boo(arg->AA,BB : int;arg->Asx2:bool): char 
+    {
+        function boo2(arg->DD: real): real {
+            var lol : int; 
             if (x==5)
                 return 1;
             {
@@ -28,9 +30,12 @@ function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
         return 1;
     return 0;
 }
+*/
+
 function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
     function xoo2(arg->DD2: real): real{
         var lol : int;
+        var x: int;
         if (x==5)
             return 1;
         {
@@ -39,7 +44,18 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                 return 1;
             {
                 var ququ : real;
+                if (x==2) {{x = x - (y) * z / 3;}}
             }
+            {
+                var ququ_bro2 : real;
+                b = xoo(a+q+2,b,c);
+                z = anna;
+            }
+            /*
+            {
+                var ququ_bro3 : real;
+                if (x==2) x = x + 2;
+            }*/
         }
         return 0;
     }

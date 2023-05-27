@@ -40,9 +40,9 @@ int print = 0;
 "+"         { if(print) printf("+\n"); return yytext[0]; }
 
 "/*"([^*]*|(\*+[^/]))*"*/"  {
-    yylval = mknode1(yytext);
+    // yylval = mknode1(yytext);
     if(print) printf("COMMENT\n");
-    return COMMENT;
+    // return COMMENT;
     }
 
 [a-zA-Z][a-zA-Z0-9_]*       {

@@ -21,7 +21,7 @@ node* mknode(char* token, node** children) {
     newnode->children = temp;
     newnode->type = NONE_T;
     newnode->scope = NULL;
-    /* printf("for token: %s, childnum= %d",newnode->token,newnode->child_num); */
+    newnode->use_scope = NULL;
     return newnode;
 }
 
@@ -34,15 +34,22 @@ node* mknode1(char* token) {
     newnode->child_num = 0;
     newnode->type = NONE_T;
     newnode->scope = NULL;
+    newnode->use_scope = NULL;
     return newnode;
 }
 
 node* expNode(char* token,node* first,node* second){
-    return mknode("#",(node*[]){
+    node* temp = mknode("#",(node*[]){
     mknode1(token),nl(),
     mknode("",(node*[]){first,NULL}),nl(),
     mknode("",(node*[]){second,NULL}),nl(),
     mknode1(")"),nl(),NULL});
+    temp->use_scope = newScope();
+    addVarArrToScope(first->use_scope->varArr, temp->use_scope);
+    addVarArrToScope(second->use_scope->varArr, temp->use_scope);
+    addFunctionArrToScope(first->use_scope->funcsArr, temp->use_scope);
+    addFunctionArrToScope(second->use_scope->funcsArr, temp->use_scope);
+    return temp;
 }
 
 
@@ -116,40 +123,40 @@ void printtree(node* tree, int shift) {
 
     for (int i = 0; i < tree->child_num; i++) {
         if (tree->children[i]->token[0] == '#'){
-                if (hasNewLine == 1)
-                        printtree(tree->children[i],shift);//zay el loo7 flatter()
-                else
-                        printtree(tree->children[i],0);
-                continue;
+            if (hasNewLine == 1)
+                printtree(tree->children[i],shift);//zay el loo7 flatter()
+            else
+                printtree(tree->children[i],0);
+            continue;
         }
         if (!(tree->children[i]->token == NULL || strcmp(tree->children[i]->token,"")==0)){
-                if (indexOf(tree->children[i]->token,'\n')!=-1){
-                        if (hasNewLine == 0){
-                                hasNewLine = 1;
-                                printtree(tree->children[i],0);
-                                continue;
-                        }else
-                                hasNewLine = 1;
-                }else{
-                        if (hasNewLine == 0)
-                                hasNewLine = 0;
-                        else{
-                                hasNewLine = 0;
-                                printtree(tree->children[i],shift+1);
-                                continue;
-                        }
+            if (indexOf(tree->children[i]->token,'\n')!=-1){
+                if (hasNewLine == 0){
+                    hasNewLine = 1;
+                    printtree(tree->children[i],0);
+                    continue;
+                }else
+                    hasNewLine = 1;
+            }else{
+                if (hasNewLine == 0)
+                    hasNewLine = 0;
+                else{
+                    hasNewLine = 0;
+                    printtree(tree->children[i],shift+1);
+                    continue;
                 }
-                        
+            }
+                    
 
-                if (hasNewLine == 1)
-                        printtree(tree->children[i],shift+1);
-                else
-                        printtree(tree->children[i],0);
+            if (hasNewLine == 1)
+                printtree(tree->children[i],shift+1);
+            else
+                printtree(tree->children[i],0);
         }else{
-                if (hasNewLine == 1)
-                        printtree(tree->children[i],shift+1);//zay el loo7 flatter()
-                else
-                        printtree(tree->children[i],0);
+            if (hasNewLine == 1)
+                printtree(tree->children[i],shift+1);//zay el loo7 flatter()
+            else
+                printtree(tree->children[i],0);
         }
     }
 }
@@ -195,6 +202,14 @@ Var* newVar(char* name, enum Type type) {
     strcpy(newstr, name);
     var->name = newstr;
     var->type = type;
+    return var;
+}
+Var* newVar_(char* name){
+    Var* var = (Var*)malloc(sizeof(Var));
+    char* newstr = (char*)malloc(sizeof(name) + 1);
+    strcpy(newstr, name);
+    var->name = newstr;
+    var->type = NONE_T;
     return var;
 }
 VarArr* newVarArr() {
@@ -263,6 +278,8 @@ Scope* newScope() {
     scope->varArr = newVarArr();
     scope->funcsArr = newFunctionArr();
     scope->returnType = NONE_T;
+    scope->nestedBlocks = 0;
+    scope->nestedFuncs = 0;
     return scope;
 }
 
@@ -387,19 +404,28 @@ void printFunctionArr(FunctionArr* funcsArr){
     printf("]\n");
 }
 
-void printScope(Scope* Scope, int i){
-    if (Scope == NULL){
+
+void printScope(Scope* scope, int i) {
+    if (scope == NULL) {
         printf("scope %d: NULL\n", i);
         return;
     }
-    printf("#################start#####################\n");
-    printf("scope %d:\n", i);
-    printf("return type: %s\n", getTypeAsString(Scope->returnType));
-    printVarArr(Scope->varArr);
+    
+    printf("################# Start of Scope %d #####################\n", i);
+    printf("Return Type: %s\n", getTypeAsString(scope->returnType));
+    printf("Nested Blocks: %d\n", scope->nestedBlocks);
+    printf("Nested Functions: %d\n\n", scope->nestedFuncs);
+    
+    printf("---- Variables ----\n");
+    printVarArr(scope->varArr);
     printf("\n");
-    printFunctionArr(Scope->funcsArr);
-    printf("\n#################end#####################\n");
+    
+    printf("---- Functions ----\n");
+    printFunctionArr(scope->funcsArr);
+    
+    printf("################# End of Scope %d #######################\n", i);
 }
+
 
 void printScopeStack(ScopeStack* stack){
     if (stack == NULL){
@@ -425,6 +451,138 @@ void reverseStack(ScopeStack* stack){
         j--;
     }
 }
+
+
+// void nestTheStack(ScopeStack* stack){
+//     if (stack == NULL) return;
+//     for(int i=stack->len-1; i>=1; i--){
+//         Scope* scope = stack->scopes[i];
+//         Scope* nextScope = stack->scopes[i-1];
+//         if (scope->nestedBlocks + 1 == nextScope->nestedBlocks){
+//             continue;
+//         }else{
+//             ScopeStack* subStack = scope->stack;
+//             for(int j=stack->len-1; j>=i; j--){
+//                 Scope* currentScope = stack->scopes[j];
+//                 pushScope(subStack, currentScope);
+//                 popScope(stack);
+//             }
+//         }
+//     }
+// }
+
+void printSemanticOrder(node* tree){
+    if (tree == NULL) return;
+
+    for(int i=0; i<tree->child_num; i++){
+        printSemanticOrder(tree->children[i]);
+    }
+
+    for(int i=0; i<tree->child_num; i++){
+        node* child = tree->children[i];
+        if (strcmp(child->token,"(BODY")==0){
+            printf("BODY:\n");
+            printtree(tree->children[i+2],0);
+            child->token = "(BODY-DONE";
+        }
+        if (strcmp(child->token,"(BLOCK")==0){
+            printf("BLOCK:\n");
+            printtree(tree->children[i+2]->children[0],0);
+            child->token = "(BLOCK-DONE";
+        }
+        // if (strcmp(child->token,"#statement_block")==0){
+        //     printf("#statement_block:\n");
+        //     printtree(child->children[0],0);
+        //     child->token = "#statement_block-DONE";
+        // }
+    }
+
+}
+
+void semantics_(node* tree,ScopeStack* stack){
+    if (tree == NULL) return;
+
+    for(int i=0; i<tree->child_num; i++){
+        printSemanticOrder(tree->children[i]);
+    }
+
+    for(int i=0; i<tree->child_num; i++){
+        node* child = tree->children[i];
+        if (strcmp(child->token,"(BODY")==0){
+            printf("BODY:\n");
+            printtree(tree->children[i+2],0);
+            child->token = "(BODY-DONE";
+        }
+        if (strcmp(child->token,"(BLOCK")==0){
+            printf("BLOCK:\n");
+            printtree(tree->children[i+2]->children[0],0);
+            child->token = "(BLOCK-DONE";
+        }
+        // if (strcmp(child->token,"#statement_block")==0){
+        //     printf("#statement_block:\n");
+        //     printtree(child->children[0],0);
+        //     child->token = "#statement_block-DONE";
+        // }
+    }
+}
+
+void checkDuplicateVarOrFuncInStack(ScopeStack* stack){
+    if (stack == NULL) return;
+    for(int i=0; i<stack->len; i++){
+        // check that each scope has no duplicate variables or functions
+        Scope* scope = stack->scopes[i];
+        for(int j=0; j<scope->varArr->len; j++){
+            Var* var = scope->varArr->vars[j];
+            for(int k=j+1; k<scope->varArr->len; k++){
+                Var* var2 = scope->varArr->vars[k];
+                if (strcmp(var->name,var2->name)==0){
+                    printf("Error: found duplicate variable (%s) in the same scope\n", var->name);
+                    exit(1);
+                }
+            }
+        }
+        for(int j=0; j<scope->funcsArr->len; j++){
+            Function* func = scope->funcsArr->funcs[j];
+            for(int k=j+1; k<scope->funcsArr->len; k++){
+                Function* func2 = scope->funcsArr->funcs[k];
+                if (strcmp(func->name,func2->name)==0){
+                    printf("Error: found duplicate function (%s) in the same scope\n", func->name);
+                    exit(1);
+                }
+            }
+        }
+    }
+}
+
+void semantics(node* tree,ScopeStack* stack){
+    checkDuplicateVarOrFuncInStack(stack);
+    
+}
+
+
+int howManyBlockIhaveInside(node* tree,int count){
+    if (tree == NULL) return count;
+    if (strcmp(tree->token,"(BLOCK")==0){
+        count++;
+    }
+    for(int i=0; i<tree->child_num; i++){
+        count = howManyBlockIhaveInside(tree->children[i],count);
+    }
+    return count;
+}
+
+int howManyFunctionsIHaveInside(node* tree,int count){
+    if (tree == NULL) return count;
+    if (strcmp(tree->token,"(FUNC")==0){
+        count++;
+    }
+    for(int i=0; i<tree->child_num; i++){
+        count = howManyFunctionsIHaveInside(tree->children[i],count);
+    }
+    return count;
+}
+
+
 
 void semanticsCheck(node* tree){
     printf("semanticsCheck\n");
@@ -622,6 +780,21 @@ node* add_functions_to_scope(node* tree, Scope* scope){
     }
     return NULL;
 }
+
+node* add_args_to_scope(node* tree, Scope* scope){
+    if (tree == NULL) return NULL;
+    if (tree->children == NULL) return NULL; 
+    if (strcmp(tree->token,"#exp_list")==0){     
+        node* var_st = tree->children[0];
+        if (var_st->use_scope != NULL)
+            addVarArrToScope(var_st->use_scope->varArr,scope);
+    }
+    for (int i = 0; i < tree->child_num; i++) {
+        add_args_to_scope(tree->children[i], scope);
+    }
+    return NULL;
+}
+
 
 VarArr* getFunctionVarArr(node* func){
     if (indexOfSon(func, "(ARGS")!= -1){

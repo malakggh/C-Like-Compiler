@@ -12,9 +12,6 @@
     struct node* head;
     struct ScopeStack* stack = NULL;
     struct Scope* global_scope = NULL;
-    void addVarArrToScope(VarArr* varArr, Scope* scope);
-    void addFunctionArrToScope(FunctionArr* funcArr, Scope* scope);
-    void reverseStack(ScopeStack* stack);
 %}
 
 
@@ -43,9 +40,15 @@ code_global:
                 // the function name, arguments and return type
                 addFunctionArrToScope($1->scope->funcsArr, global_scope);
                 reverseStack(stack);
+                
+                // nestTheStack(stack);
+
+
                 printScope(global_scope,9999);
                 printScopeStack(stack);
-                printtree($1,0);
+                semantics($1,stack);
+                // printtree($1,0);
+                // printSemanticOrder($1);
                 // free the stack
                 stack->len = 0;
         } code_global {
@@ -89,7 +92,10 @@ func_or_prod:
             // extract the vars from the block
             addVarArrToScope($9->scope->varArr, block_scope);
             addFunctionArrToScope($9->scope->funcsArr, block_scope);
+            block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
+            block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
             pushScope(stack, block_scope);    
+            // printScopeStack(stack);
 
         }
 //      1    2    3  4           5   6  7     8  9     10
@@ -179,7 +185,7 @@ statement:
         ;
 
 statement_block:
-        statement {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        statement {$$ = mknode("#statement_block",(struct node*[]){$1,NULL});}
         |return_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
 
 new_block: 
@@ -187,13 +193,18 @@ new_block:
 			$$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
+            $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
             pushScope(stack,$$->scope);
+            // printScopeStack(stack);
         }
         |'{' vars statements'}'{
             $$ = mknode("#",(struct node*[]){$2,$3,NULL});
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
+            $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
             pushScope(stack,$$->scope);
+            // printScopeStack(stack);
+            // printf("\nblock inside me %d\n",howManyBlockIhaveInside($3,0));
         }
         ;
 
@@ -276,18 +287,43 @@ for_st:
                         ,NULL});
         }
         ;
+        /* void addVarArrToScope(VarArr* varArr, Scope* scope); */
 
+/* 
+    here continue
+    TODO:
+        add assignment_st use_scope to the scope of the statement
+        and to everywhere else
+ */
 assignment_st:
         lhs '=' exp {
-                struct node* expTemp = mknode("",(struct node*[]){$3,NULL});
-                $$ = mknode("#",(struct node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
-                }
+            struct node* expTemp = mknode("",(struct node*[]){$3,NULL});
+            $$ = mknode("#",(struct node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($1->use_scope->varArr, $$->use_scope);
+            addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
+            printf("assignment_st\n");
+            printScope($$->use_scope,8888);
+            }
         ;
 
 lhs:
-        ID {$$ = mknode1($1->token);}
-        |ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
-        |'*' ID {$$ = mknode("#",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});}
+        ID {
+            $$ = mknode1($1->token);
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($1->token));
+        }
+        |ID '[' exp ']' {
+            $$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($1->token));
+        }
+        |'*' ID {
+            $$ = mknode("#",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($2->token));
+        }
         ;
 
 value:
@@ -344,15 +380,24 @@ var_string_opt:
         ;
 
 func_call:
-        ID '(' exp_list ')' {$$ = mknode("#",(struct node*[]){mknode1("function call "),mknode1($1->token),mknode1("("),$3,mknode1(")"),NULL});}
+        ID '(' exp_list ')' {
+            $$ = mknode("#",(struct node*[]){mknode1("function call "),mknode1($1->token),mknode1("("),$3,mknode1(")"),NULL});
+            $$->use_scope = newScope();
+            add_args_to_scope($3, $$->use_scope);
+            appendFunctionArr($$->use_scope->funcsArr, newFunction($1->token,NONE_T,newVarArr()));
+            // printf("func_call\n");
+            // printtree_REAL($3,0);
+            // printf("\n");
+            // printScope($$->use_scope,1010);
+        }
         ;
 
 exp_list: 
-        exp {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        | exp ',' exp_list {$$ = mknode("#",(struct node*[]){$1,mknode1(","),$3,NULL});}
+        exp {$$ = mknode("#exp_list",(struct node*[]){$1,NULL});}
+        | exp ',' exp_list {$$ = mknode("#exp_list",(struct node*[]){$1,mknode1(","),$3,NULL});}
         | {$$=mknode1("#");}
         ;
-
+    /* void addVarArrToScope(VarArr* varArr, Scope* scope); */
 exp:		
           exp '+' exp {$$ = expNode("( +",$1,$3);}    			
         | exp '-' exp {$$ = expNode("( -",$1,$3);}      				
@@ -366,17 +411,62 @@ exp:
         | exp BIG_EQ exp {$$ = expNode("( >=",$1,$3);}					
         | exp OR exp {$$ = expNode("( ||",$1,$3);}				
         | exp AND exp {$$ = expNode("( &&",$1,$3);}												
-        | '!' exp {$$ = mknode("#",(struct node*[]){mknode1("!"),nl(),$2,NULL});} 								
-        | ID {$$ = mknode1($1->token);}											
-        | func_call {$$ = mknode("#",(struct node*[]){$1,NULL});}	  							
-        | '|' ID '|' {$$ = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});}	 									
-        | '(' exp ')' {$$ = $2;}//mknode("#",(struct node*[]){mknode1("("),$2,mknode1(")"),NULL});}																
-        | '&' ID {$$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1(")"),NULL});}	  											
-        | '&' ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1("["),$4,mknode1("]"),NULL});}
-        | '*' ID {$$ = mknode("#",(struct node*[]){mknode1("dereference("),mknode1($2->token),mknode1(")"),NULL});}
-        |value {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        | '-' exp {$$ = mknode("#",(struct node*[]){mknode1("-"),$2,NULL});}
-        | '+' exp {$$ = mknode("#",(struct node*[]){mknode1("+"),$2,NULL});}
+        | '!' exp {
+            $$ = mknode("#",(struct node*[]){mknode1("!"),nl(),$2,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($2->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
+        } 								
+        | ID {
+            $$ = mknode1($1->token);
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($1->token));
+        }											
+        | func_call {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($1->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($1->use_scope->funcsArr, $$->use_scope);
+        }	  							
+        | '|' ID '|' {
+            $$ = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($2->token));
+        }	 									
+        | '(' exp ')' {$$ = $2;}														
+        | '&' ID {
+            $$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1(")"),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($2->token));    
+        }	  											
+        | '&' ID '[' exp ']' {
+            $$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1("["),$4,mknode1("]"),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($2->token));
+            addVarArrToScope($4->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($4->use_scope->funcsArr, $$->use_scope);
+        }
+        | '*' ID {
+            $$ = mknode("#",(struct node*[]){mknode1("dereference("),mknode1($2->token),mknode1(")"),NULL});
+            $$->use_scope = newScope();
+            appendVarArr($$->use_scope->varArr, newVar_($2->token));
+        }
+        | value {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = newScope();
+        }
+        | '-' exp {
+            $$ = mknode("#",(struct node*[]){mknode1("-"),$2,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($2->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
+        }
+        | '+' exp {
+            $$ = mknode("#",(struct node*[]){mknode1("+"),$2,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($2->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
+        }
         ;
 
  

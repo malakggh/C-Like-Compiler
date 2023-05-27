@@ -969,9 +969,9 @@ case 30:
 YY_RULE_SETUP
 #line 42 "scanner.l"
 {
-    yylval = mknode1(yytext);
+    // yylval = mknode1(yytext);
     if(print) printf("COMMENT\n");
-    return COMMENT;
+    // return COMMENT;
     }
 	YY_BREAK
 case 31:

@@ -56,6 +56,8 @@ typedef struct Scope
     struct VarArr* varArr;
     struct FunctionArr* funcsArr;
     enum Type returnType;
+    int nestedBlocks;
+    int nestedFuncs;
 }Scope;
 
 typedef struct ScopeStack{
@@ -70,6 +72,7 @@ typedef struct node {
     int child_num;
     enum Type type;
     Scope* scope;
+    Scope* use_scope;
 } node;
 #define YYSTYPE node* 
 // ##########################################################
@@ -88,6 +91,7 @@ char* shifts(int n);
 // FUNCS OF SEMANTICS
 void semanticsCheck(node* tree);
 Var* newVar(char* name, enum Type type);
+Var* newVar_(char* name);
 VarArr* newVarArr();
 void expandVarArr(VarArr* arr);
 void appendVarArr(VarArr* arr, Var* newVar);
@@ -122,3 +126,9 @@ int indexOfSon(node* tree, char* token);
 enum Type getFunctionType(node* func);
 // node* tree expected to be Parent
 VarArr* getFunctionVarArr(node* func);
+
+
+
+void addVarArrToScope(VarArr* varArr, Scope* scope);
+void addFunctionArrToScope(FunctionArr* funcArr, Scope* scope);
+void reverseStack(ScopeStack* stack);
