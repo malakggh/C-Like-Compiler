@@ -1493,27 +1493,27 @@ yyreduce:
   case 8: /* func_or_prod: FUNC ID '(' parameters ')' ':' type '{' block return_st '}'  */
 #line 65 "parser.y"
         {
-            node* parTemp = mknode("",(node*[]){yyvsp[-7],NULL});
-            node* blockTemp = mknode("",(node*[]){yyvsp[-2],yyvsp[-1],NULL});
-            node* temp = mknode("",(node*[]){
+            struct node* parTemp = mknode("",(struct node*[]){yyvsp[-7],NULL});
+            struct node* blockTemp = mknode("",(struct node*[]){yyvsp[-2],yyvsp[-1],NULL});
+            struct node* temp = mknode("",(struct node*[]){
                 mknode1(yyvsp[-9]->token),nl(),
                 mknode1("(ARGS"),nl(), parTemp, mknode1(")"),nl(),
                 mknode1("(RET "), mknode1(yyvsp[-4]->token), mknode1(")"),nl(),
                 mknode1("(BODY"),nl(), blockTemp, mknode1(")"),nl(),
                 NULL});
             
-            node* func = mknode("",(node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
+            struct node* func = mknode("",(struct node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
             yyval = func;
 
 
-            Scope* currentScope = newScope();
-            VarArr* parametersArr = newVarArr();
+            struct Scope* currentScope = newScope();
+            struct VarArr* parametersArr = newVarArr();
             getFunctionVarArr_Scanner(parTemp, parametersArr);
-            Function* newFunc = newFunction(yyvsp[-9]->token, yyvsp[-4]->type, parametersArr);
+            struct Function* newFunc = newFunction(yyvsp[-9]->token, yyvsp[-4]->type, parametersArr);
             appendFunctionArr(currentScope->funcsArr, newFunc);
             yyval->scope = currentScope;
 
-            Scope* block_scope = newScope();
+            struct Scope* block_scope = newScope();
             block_scope->varArr = deepCopyVarArr(newFunc->varArr);
             block_scope->returnType = newFunc->returnType;
             // extract the vars from the block

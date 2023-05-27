@@ -1,20 +1,20 @@
 %{
-        // Authors:
-        //         ***REMOVED*** ***REMOVED***,
-        //         ***REMOVED*** ***REMOVED***,
-        //         ***REMOVED*** ***REMOVED***
-        #include <stdio.h>
-        #include <string.h>
-        #include <stdlib.h>
-        #include "helper.c"
-        int yyerror(char* e);
-        int yylex();
-        struct node* head;
-        struct ScopeStack* stack = NULL;
-        struct Scope* global_scope = NULL;
-        void addVarArrToScope(VarArr* varArr, Scope* scope);
-        void addFunctionArrToScope(FunctionArr* funcArr, Scope* scope);
-        void reverseStack(ScopeStack* stack);
+    // Authors:
+    //         ***REMOVED*** ***REMOVED***,
+    //         ***REMOVED*** ***REMOVED***,
+    //         ***REMOVED*** ***REMOVED***
+    #include <stdio.h>
+    #include <string.h>
+    #include <stdlib.h>
+    #include "helper.c"
+    int yyerror(char* e);
+    int yylex();
+    struct node* head;
+    struct ScopeStack* stack = NULL;
+    struct Scope* global_scope = NULL;
+    void addVarArrToScope(VarArr* varArr, Scope* scope);
+    void addFunctionArrToScope(FunctionArr* funcArr, Scope* scope);
+    void reverseStack(ScopeStack* stack);
 %}
 
 
@@ -49,13 +49,13 @@ code_global:
                 // free the stack
                 stack->len = 0;
         } code_global {
-                $$ = mknode("#global_scope",(node*[]){$1,$2,NULL});
+                $$ = mknode("#global_scope",(struct node*[]){$1,$2,NULL});
             }
         | {$$=mknode1("#");}
         ;
 
 code:
-        func_or_prod code {$$ = mknode("#non_global_scope",(node*[]){$1,$2,NULL});}
+        func_or_prod code {$$ = mknode("#non_global_scope",(struct node*[]){$1,$2,NULL});}
         | {$$=mknode1("#");}
         ;
 
@@ -95,22 +95,22 @@ func_or_prod:
 //      1    2    3  4           5   6  7     8  9     10
         |FUNC ID '(' parameters ')' ':' VOID '{' block '}'
         {
-            node* parTemp = mknode("",(node*[]){$4,NULL});
-            node* blockTemp = mknode("",(node*[]){$9,NULL});
-            node* temp = mknode("",(node*[]){
+            node* parTemp = mknode("",(struct node*[]){$4,NULL});
+            node* blockTemp = mknode("",(struct node*[]){$9,NULL});
+            node* temp = mknode("",(struct node*[]){
                 mknode1($2->token),nl(),
                 mknode1("(ARGS"),nl(), parTemp, mknode1(")"),nl(),
                 mknode1("(RET "), mknode1("VOID"), mknode1(")"),nl(),
                 mknode1("(BODY"),nl(), blockTemp, mknode1(")"),nl(),
                 NULL});
             
-            $$ = mknode("",(node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
+            $$ = mknode("",(struct node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
         }
         ;
 
 
 return_st:
-        RETURN exp ';' {$$ = mknode("#",(node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});}
+        RETURN exp ';' {$$ = mknode("#",(struct node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});}
         ;
 
 type:
@@ -126,20 +126,20 @@ type:
 
 
 parameters:
-        ARGS args_var {$$ = mknode("#",(node*[]){mknode1("("),$2,nl(),NULL});}
-        |ARGS args_var ';' parameters {$$ = mknode("#",(node*[]){mknode1("("),$2,nl(),$4,NULL});}
+        ARGS args_var {$$ = mknode("#",(struct node*[]){mknode1("("),$2,nl(),NULL});}
+        |ARGS args_var ';' parameters {$$ = mknode("#",(struct node*[]){mknode1("("),$2,nl(),$4,NULL});}
         | {
-                $$ = mknode("#",(node*[]){mknode1("NONE"),nl(),NULL});
+                $$ = mknode("#",(struct node*[]){mknode1("NONE"),nl(),NULL});
           }
         ;
 
 args_var:
-        ID ':' type {$$ = mknode("#",(node*[]){$1,mknode1(","),$3,mknode1(")"),NULL});$$->type = $3->type;$1->type = $3->type; }
-        |ID ',' args_var {$$ = mknode("#",(node*[]){$1,mknode1(","),$3,NULL});$$->type = $3->type;$1->type = $3->type; }
+        ID ':' type {$$ = mknode("#",(struct node*[]){$1,mknode1(","),$3,mknode1(")"),NULL});$$->type = $3->type;$1->type = $3->type; }
+        |ID ',' args_var {$$ = mknode("#",(struct node*[]){$1,mknode1(","),$3,NULL});$$->type = $3->type;$1->type = $3->type; }
         ;
 
 block: comment_st code vars statements{
-            $$ = mknode("#",(node*[]){$2,$3,$4,NULL});
+            $$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
             Scope* currentScope = newScope();
             add_vars_to_scope($3, currentScope);
             add_functions_to_scope($2, currentScope);
@@ -153,44 +153,44 @@ comment_st:
         ;
 
 statements:
-        statement statements {$$ = mknode("#stmts",(node*[]){$1,$2,NULL});}
+        statement statements {$$ = mknode("#stmts",(struct node*[]){$1,$2,NULL});}
         | {$$=mknode1("#");}
         ;
 
 vars: 
-        var_st vars {$$ = mknode("#vars",(node*[]){$1,$2,NULL});}
+        var_st vars {$$ = mknode("#vars",(struct node*[]){$1,$2,NULL});}
         | {$$=mknode1("#");}
         ;
 
 statement:
-        if_st {$$ = mknode("#",(node*[]){$1,NULL});}
-        |do_st {$$ = mknode("#",(node*[]){$1,NULL});}
-        |while_st {$$ = mknode("#",(node*[]){$1,NULL});}
-        |for_st {$$ = mknode("#",(node*[]){$1,NULL});}
-        |assignment_st ';' {$$ = mknode("#",(node*[]){$1,NULL});}
-        |func_call ';' {$$ = mknode("#",(node*[]){$1,nl(),NULL});}
+        if_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |do_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |while_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |for_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |assignment_st ';' {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |func_call ';' {$$ = mknode("#",(struct node*[]){$1,nl(),NULL});}
         |COMMENT {$$ = mknode1("#");printf("comment...\n");}
         |new_block{
-                $$ = mknode("#",(node*[]){mknode1("(BLOCK"),nl(),
-                mknode("",(node*[]){$1,NULL})
+                $$ = mknode("#",(struct node*[]){mknode1("(BLOCK"),nl(),
+                mknode("",(struct node*[]){$1,NULL})
                 ,mknode1(")"),nl(),NULL});
                 $$->scope = $1->scope;
         }
         ;
 
 statement_block:
-        statement {$$ = mknode("#",(node*[]){$1,NULL});}
-        |return_st {$$ = mknode("#",(node*[]){$1,NULL});}
+        statement {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |return_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
 
 new_block: 
         '{' vars statements return_st'}'{
-			$$ = mknode("#",(node*[]){$2,$3,$4,NULL});
+			$$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
             pushScope(stack,$$->scope);
         }
         |'{' vars statements'}'{
-            $$ = mknode("#",(node*[]){$2,$3,NULL});
+            $$ = mknode("#",(struct node*[]){$2,$3,NULL});
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
             pushScope(stack,$$->scope);
@@ -199,28 +199,28 @@ new_block:
 
 if_st:
         IF '(' exp ')' statement_block %prec non_else {
-                struct node* temp = mknode("",(node*[]){$3,$5,NULL});
-                $$ = mknode("#",(node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+                struct node* temp = mknode("",(struct node*[]){$3,$5,NULL});
+                $$ = mknode("#",(struct node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
                 }
         |IF '(' exp ')' statement_block ELSE statement_block {
-                struct node* temp = mknode("",(node*[]){$3,$5,$7,NULL});
-                $$ = mknode("#",(node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+                struct node* temp = mknode("",(struct node*[]){$3,$5,$7,NULL});
+                $$ = mknode("#",(struct node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
                 }
         ;
 
 do_st:
         DO statement_block WHILE '(' exp ')' ';' {
-                struct node* whileDoConds = mknode("",(node*[]){
+                struct node* whileDoConds = mknode("",(struct node*[]){
                         mknode1("(DO-WHILE-INIT"),nl(),
-                        mknode("",(node*[]){$5,NULL}),nl(),
+                        mknode("",(struct node*[]){$5,NULL}),nl(),
                         mknode1(")"),
                         NULL});
-                struct node* whileDoBlock = mknode("",(node*[]){
+                struct node* whileDoBlock = mknode("",(struct node*[]){
                         mknode1("(DO-WHILE-BLOCK"),nl(),
-                        mknode("",(node*[]){$2,NULL}),
+                        mknode("",(struct node*[]){$2,NULL}),
                         mknode1(")"),
                         NULL});
-                $$ = mknode("#",(node*[]){
+                $$ = mknode("#",(struct node*[]){
                         mknode1("(DO-WHILE"),
                         nl(),whileDoConds,
                         nl(),whileDoBlock,
@@ -233,17 +233,17 @@ do_st:
 while_st:
         // 1   2   3   4        5
         WHILE '(' exp ')' statement_block {
-                struct node* whileConds = mknode("",(node*[]){
+                struct node* whileConds = mknode("",(struct node*[]){
                         mknode1("(WHILE-INIT"),nl(),
-                        mknode("",(node*[]){$3,NULL}),
+                        mknode("",(struct node*[]){$3,NULL}),
                         mknode1(")"),
                         NULL});
-                struct node* whileBlock = mknode("",(node*[]){
+                struct node* whileBlock = mknode("",(struct node*[]){
                         mknode1("(WHILE-BLOCK"),nl(),
-                        mknode("",(node*[]){$5,NULL}),
+                        mknode("",(struct node*[]){$5,NULL}),
                         mknode1(")"),
                         NULL});
-                $$ = mknode("#",(node*[]){
+                $$ = mknode("#",(struct node*[]){
                         mknode1("(WHILE"),
                         nl(),whileConds,
                         nl(),whileBlock,
@@ -255,19 +255,19 @@ while_st:
 
 for_st:
         FOR '(' assignment_st ';' exp ';' assignment_st ')' statement_block {
-                struct node* forConds = mknode("",(node*[]){
+                struct node* forConds = mknode("",(struct node*[]){
                         mknode1("(FOR-INIT"),nl(),
-                        mknode("",(node*[]){$3,NULL}),
-                        mknode("",(node*[]){$5,NULL}),nl(),
-                        mknode("",(node*[]){$7,NULL}),
+                        mknode("",(struct node*[]){$3,NULL}),
+                        mknode("",(struct node*[]){$5,NULL}),nl(),
+                        mknode("",(struct node*[]){$7,NULL}),
                         mknode1(")"),
                         NULL});
-                struct node* forBlock = mknode("",(node*[]){
+                struct node* forBlock = mknode("",(struct node*[]){
                         mknode1("(FOR-BLOCK"),nl(),
-                        mknode("",(node*[]){$9,NULL}),nl(),
+                        mknode("",(struct node*[]){$9,NULL}),nl(),
                         mknode1(")"),
                         NULL});
-                $$ = mknode("#",(node*[]){
+                $$ = mknode("#",(struct node*[]){
                         mknode1("(FOR"),
                         nl(),forConds,
                         nl(),forBlock,
@@ -279,15 +279,15 @@ for_st:
 
 assignment_st:
         lhs '=' exp {
-                struct node* expTemp = mknode("",(node*[]){$3,NULL});
-                $$ = mknode("#",(node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
+                struct node* expTemp = mknode("",(struct node*[]){$3,NULL});
+                $$ = mknode("#",(struct node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
                 }
         ;
 
 lhs:
         ID {$$ = mknode1($1->token);}
-        |ID '[' exp ']' {$$ = mknode("#",(node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
-        |'*' ID {$$ = mknode("#",(node*[]){mknode1("*"),mknode1($2->token),NULL});}
+        |ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
+        |'*' ID {$$ = mknode("#",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});}
         ;
 
 value:
@@ -303,9 +303,9 @@ value:
 
 var_st:
         VAR var_list ';' {
-            $$ = mknode("#",(node*[]){mknode1("(VAR ")
+            $$ = mknode("#",(struct node*[]){mknode1("(VAR ")
             ,nl()
-            ,mknode("",(node*[]){$2,NULL})
+            ,mknode("",(struct node*[]){$2,NULL})
             ,nl()
             ,mknode1(")"),nl(),NULL});
             $$->scope = newScope();
@@ -313,9 +313,9 @@ var_st:
             
         }
         |STRING var_string_list ';' {
-            $$ = mknode("#",(node*[]){mknode1("(VAR_STRING ")
+            $$ = mknode("#",(struct node*[]){mknode1("(VAR_STRING ")
             ,nl()
-            ,mknode("",(node*[]){$2,NULL})
+            ,mknode("",(struct node*[]){$2,NULL})
             ,nl()
             ,mknode1(")"),nl(),NULL});
             $$->scope = newScope();
@@ -324,32 +324,32 @@ var_st:
         ;
 
 var_list:
-        var_op ':' type {$$ = mknode("#",(node*[]){$1,nl(),mknode1("Type: "),$3,NULL});$$->type = $3->type;$1->type = $3->type;}
-        |var_op ',' var_list {$$ = mknode("#",(node*[]){$1,nl(),$3,NULL});$$->type = $3->type;$1->type = $3->type; }
+        var_op ':' type {$$ = mknode("#",(struct node*[]){$1,nl(),mknode1("Type: "),$3,NULL});$$->type = $3->type;$1->type = $3->type;}
+        |var_op ',' var_list {$$ = mknode("#",(struct node*[]){$1,nl(),$3,NULL});$$->type = $3->type;$1->type = $3->type; }
         ;
 
 var_op:
         ID {$$ = mknode1($1->token);}
-        |assignment_st {$$ = mknode("#ass_in_var",(node*[]){$1,NULL});}
+        |assignment_st {$$ = mknode("#ass_in_var",(struct node*[]){$1,NULL});}
         ;
 
 var_string_list:
-        var_string_opt {$$ = mknode("#",(node*[]){$1,nl(),NULL});}
-        |var_string_opt ',' var_string_list {$$ = mknode("#",(node*[]){$1,nl(),$3,NULL});}
+        var_string_opt {$$ = mknode("#",(struct node*[]){$1,nl(),NULL});}
+        |var_string_opt ',' var_string_list {$$ = mknode("#",(struct node*[]){$1,nl(),$3,NULL});}
         ;
 
 var_string_opt:
-        ID '[' exp ']' {$$ = mknode("#",(node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
-        |assignment_st {$$ = mknode("#ass_in_str",(node*[]){$1,NULL});}
+        ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
+        |assignment_st {$$ = mknode("#ass_in_str",(struct node*[]){$1,NULL});}
         ;
 
 func_call:
-        ID '(' exp_list ')' {$$ = mknode("#",(node*[]){mknode1("function call "),mknode1($1->token),mknode1("("),$3,mknode1(")"),NULL});}
+        ID '(' exp_list ')' {$$ = mknode("#",(struct node*[]){mknode1("function call "),mknode1($1->token),mknode1("("),$3,mknode1(")"),NULL});}
         ;
 
 exp_list: 
-        exp {$$ = mknode("#",(node*[]){$1,NULL});}
-        | exp ',' exp_list {$$ = mknode("#",(node*[]){$1,mknode1(","),$3,NULL});}
+        exp {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        | exp ',' exp_list {$$ = mknode("#",(struct node*[]){$1,mknode1(","),$3,NULL});}
         | {$$=mknode1("#");}
         ;
 
@@ -366,17 +366,17 @@ exp:
         | exp BIG_EQ exp {$$ = expNode("( >=",$1,$3);}					
         | exp OR exp {$$ = expNode("( ||",$1,$3);}				
         | exp AND exp {$$ = expNode("( &&",$1,$3);}												
-        | '!' exp {$$ = mknode("#",(node*[]){mknode1("!"),nl(),$2,NULL});} 								
+        | '!' exp {$$ = mknode("#",(struct node*[]){mknode1("!"),nl(),$2,NULL});} 								
         | ID {$$ = mknode1($1->token);}											
-        | func_call {$$ = mknode("#",(node*[]){$1,NULL});}	  							
-        | '|' ID '|' {$$ = mknode("#",(node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});}	 									
-        | '(' exp ')' {$$ = $2;}//mknode("#",(node*[]){mknode1("("),$2,mknode1(")"),NULL});}																
-        | '&' ID {$$ = mknode("#",(node*[]){mknode1("addressOf("),mknode1($2->token),mknode1(")"),NULL});}	  											
-        | '&' ID '[' exp ']' {$$ = mknode("#",(node*[]){mknode1("addressOf("),mknode1($2->token),mknode1("["),$4,mknode1("]"),NULL});}
-        | '*' ID {$$ = mknode("#",(node*[]){mknode1("dereference("),mknode1($2->token),mknode1(")"),NULL});}
-        |value {$$ = mknode("#",(node*[]){$1,NULL});}
-        | '-' exp {$$ = mknode("#",(node*[]){mknode1("-"),$2,NULL});}
-        | '+' exp {$$ = mknode("#",(node*[]){mknode1("+"),$2,NULL});}
+        | func_call {$$ = mknode("#",(struct node*[]){$1,NULL});}	  							
+        | '|' ID '|' {$$ = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});}	 									
+        | '(' exp ')' {$$ = $2;}//mknode("#",(struct node*[]){mknode1("("),$2,mknode1(")"),NULL});}																
+        | '&' ID {$$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1(")"),NULL});}	  											
+        | '&' ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1("["),$4,mknode1("]"),NULL});}
+        | '*' ID {$$ = mknode("#",(struct node*[]){mknode1("dereference("),mknode1($2->token),mknode1(")"),NULL});}
+        |value {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        | '-' exp {$$ = mknode("#",(struct node*[]){mknode1("-"),$2,NULL});}
+        | '+' exp {$$ = mknode("#",(struct node*[]){mknode1("+"),$2,NULL});}
         ;
 
  
@@ -387,7 +387,7 @@ int main(){
         stack = newScopeStack();
         global_scope = newScope();
         yyparse();
-        struct node* temp = mknode("",(node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
+        struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
         printf("printing tree\n");
         printtree(temp,0);
         printf("done printing tree\n");

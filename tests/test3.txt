@@ -33,6 +33,14 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
         var lol : int;
         if (x==5)
             return 1;
+        {
+            var z : int;
+            if (x==5)
+                return 1;
+            {
+                var ququ : real;
+            }
+        }
         return 0;
     }
     var abc : int;
