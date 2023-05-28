@@ -22,6 +22,7 @@ node* mknode(char* token, node** children) {
     newnode->type = NONE_T;
     newnode->scope = NULL;
     newnode->use_scope = NULL;
+    newnode->pointer = NULL;
     return newnode;
 }
 
@@ -35,6 +36,7 @@ node* mknode1(char* token) {
     newnode->type = NONE_T;
     newnode->scope = NULL;
     newnode->use_scope = NULL;
+    newnode->pointer = NULL;
     return newnode;
 }
 
@@ -504,13 +506,47 @@ void printSemanticOrder(node* tree){
             printtree(tree->children[i+2]->children[0],0);
             child->token = "(BLOCK-DONE";
         }
-        // if (strcmp(child->token,"#statement_block")==0){
-        //     printf("#statement_block:\n");
-        //     printtree(child->children[0],0);
-        //     child->token = "#statement_block-DONE";
-        // }
+        if (strcmp(child->token,"#statement_block")==0 && 
+            !(strcmp(child->children[0]->token,"#new_block")==0)){
+                printf("#statement_block:\n");
+                printtree(child->children[0],0);
+                child->token = "#statement_block-DONE";
+        }
     }
 
+}
+// here to continue
+// trying to print the scopes in the right order
+void printSemanticOrder_Scopes(node* tree){
+    if (tree == NULL) return;
+
+
+    for(int i=0; i<tree->child_num; i++){
+        node* child = tree->children[i];
+        if (strcmp(child->token,"(BODY")==0){
+            printf("BODY:\n");
+            // printtree(tree->children[i+2],0);
+            printScope(tree->children[i+2]->pointer,0);
+            child->token = "(BODY-DONE";
+        }
+        if (strcmp(child->token,"(BLOCK")==0){
+            printf("BLOCK:\n");
+            // printtree(tree->children[i+2]->children[0],0);
+            printScope(tree->children[i+2]->children[0]->pointer,0);
+            child->token = "(BLOCK-DONE";
+        }
+        if (strcmp(child->token,"#statement_block")==0 && 
+            !(strcmp(child->children[0]->token,"#new_block")==0)){
+                printf("#statement_block:\n");
+                // printtree(child->children[0],0);
+                printScope(child->children[0]->pointer,0);
+                child->token = "#statement_block-DONE";
+        }
+    }
+
+    for(int i=0; i<tree->child_num; i++){
+        printSemanticOrder_Scopes(tree->children[i]);
+    }
 }
 
 void semantics_(node* tree,ScopeStack* stack){

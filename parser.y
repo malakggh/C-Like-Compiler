@@ -49,6 +49,7 @@ code_global:
                 semantics($1,stack);
                 // printtree($1,0);
                 // printSemanticOrder($1);
+                printSemanticOrder_Scopes($1);
                 // free the stack
                 stack->len = 0;
         } code_global {
@@ -95,7 +96,10 @@ func_or_prod:
             block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
             block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
             block_scope->useScope = $9->scope->useScope;
+            addVarArrToScope($10->use_scope->varArr, block_scope->useScope);
+            addFunctionArrToScope($10->use_scope->funcsArr, block_scope->useScope);
             pushScope(stack, block_scope);    
+            blockTemp->pointer = block_scope;
             // printScopeStack(stack);
 
         }
@@ -117,7 +121,12 @@ func_or_prod:
 
 
 return_st:
-        RETURN exp ';' {$$ = mknode("#",(struct node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});}
+        RETURN exp ';' {
+            $$ = mknode("#",(struct node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($2->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
+        }
         ;
 
 type:
@@ -174,37 +183,66 @@ vars:
         ;
 
 statement:
-        if_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        |do_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        |while_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        |for_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        if_st {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = $1->use_scope;
+        }
+        |do_st {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = $1->use_scope;
+        }
+        |while_st {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = $1->use_scope;
+        }
+        |for_st {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = $1->use_scope;
+        }
         |assignment_st ';' {
-                $$ = mknode("#",(struct node*[]){$1,NULL});
-                $$->use_scope = $1->use_scope;
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->use_scope = $1->use_scope;
         }
         |func_call ';' {
-            $$ = mknode("#",(struct node*[]){$1,nl(),NULL});
+            $$ = mknode("#func_call_stmt",(struct node*[]){$1,nl(),NULL});
             $$->use_scope = $1->use_scope;
         }
         |new_block{
-                $$ = mknode("#",(struct node*[]){mknode1("(BLOCK"),nl(),
-                mknode("",(struct node*[]){$1,NULL})
-                ,mknode1(")"),nl(),NULL});
-                $$->scope = $1->scope;
+            $$ = mknode("#new_block",(struct node*[]){mknode1("(BLOCK"),nl(),
+            mknode("",(struct node*[]){$1,NULL})
+            ,mknode1(")"),nl(),NULL});
+            $$->scope = $1->scope;
         }
         |COMMENT {$$ = mknode1("#");printf("comment...\n");}
         ;
-/* here check why one-liner condtions doesn't appear */
+
 statement_block:
         statement {
             $$ = mknode("#statement_block",(struct node*[]){$1,NULL});
-            $$->scope = newScope();
-            $$->use_scope = newScope();
-            add_statements_to_scope($1, $$->use_scope);
-            $$->scope->useScope = $$->use_scope;
-            pushScope(stack,$$->scope);
+            // printf("statement_block\n");
+            // printtree_REAL($1,0);
+            // do the same for the printing tree semantic
+            if (!(strcmp($1->token,"#new_block")==0)){
+                $$->scope = newScope();
+                $$->use_scope = $1->use_scope;
+
+                $$->scope->useScope = $$->use_scope;
+                
+                pushScope(stack,$$->scope);
+                $1->pointer = $$->scope;
+
+            }
         }
-        |return_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
+        |return_st {
+            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$->scope = newScope();
+            $$->use_scope = $1->use_scope;
+
+            $$->scope->useScope = $$->use_scope;
+            
+            pushScope(stack,$$->scope);
+            $$->pointer = $$->scope;
+        }
 
 new_block: 
         '{' vars statements return_st'}'{
@@ -216,9 +254,12 @@ new_block:
 
             $$->use_scope = newScope();
             add_statements_to_scope($3, $$->use_scope);
+            addVarArrToScope($4->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($4->use_scope->funcsArr, $$->use_scope);
             $$->scope->useScope = $$->use_scope;
 
             pushScope(stack,$$->scope);
+            $$->pointer = $$->scope;
         }
         |'{' vars statements'}'{
             $$ = mknode("#",(struct node*[]){$2,$3,NULL});
@@ -232,6 +273,7 @@ new_block:
             $$->scope->useScope = $$->use_scope;
             
             pushScope(stack,$$->scope);
+            $$->pointer = $$->scope;
         }
         ;
 
@@ -239,89 +281,105 @@ if_st:
         IF '(' exp ')' statement_block %prec non_else {
                 struct node* temp = mknode("",(struct node*[]){$3,$5,NULL});
                 $$ = mknode("#",(struct node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+                $$->use_scope = newScope();
+                addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+                addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
                 }
         |IF '(' exp ')' statement_block ELSE statement_block {
                 struct node* temp = mknode("",(struct node*[]){$3,$5,$7,NULL});
                 $$ = mknode("#",(struct node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+                $$->use_scope = newScope();
+                addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+                addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
                 }
         ;
 
 do_st:
         DO statement_block WHILE '(' exp ')' ';' {
-                struct node* whileDoConds = mknode("",(struct node*[]){
-                        mknode1("(DO-WHILE-INIT"),nl(),
-                        mknode("",(struct node*[]){$5,NULL}),nl(),
-                        mknode1(")"),
-                        NULL});
-                struct node* whileDoBlock = mknode("",(struct node*[]){
-                        mknode1("(DO-WHILE-BLOCK"),nl(),
-                        mknode("",(struct node*[]){$2,NULL}),
-                        mknode1(")"),
-                        NULL});
-                $$ = mknode("#",(struct node*[]){
-                        mknode1("(DO-WHILE"),
-                        nl(),whileDoConds,
-                        nl(),whileDoBlock,
-                        nl(),mknode1(")"),
-                        nl()
-                        ,NULL});
+            struct node* whileDoConds = mknode("",(struct node*[]){
+                    mknode1("(DO-WHILE-INIT"),nl(),
+                    mknode("",(struct node*[]){$5,NULL}),nl(),
+                    mknode1(")"),
+                    NULL});
+            struct node* whileDoBlock = mknode("",(struct node*[]){
+                    mknode1("(DO-WHILE-BLOCK"),nl(),
+                    mknode("",(struct node*[]){$2,NULL}),
+                    mknode1(")"),
+                    NULL});
+            $$ = mknode("#",(struct node*[]){
+                    mknode1("(DO-WHILE"),
+                    nl(),whileDoConds,
+                    nl(),whileDoBlock,
+                    nl(),mknode1(")"),
+                    nl()
+                    ,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($5->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($5->use_scope->funcsArr, $$->use_scope);
         }
         ;
 
 while_st:
         // 1   2   3   4        5
         WHILE '(' exp ')' statement_block {
-                struct node* whileConds = mknode("",(struct node*[]){
-                        mknode1("(WHILE-INIT"),nl(),
-                        mknode("",(struct node*[]){$3,NULL}),
-                        mknode1(")"),
-                        NULL});
-                struct node* whileBlock = mknode("",(struct node*[]){
-                        mknode1("(WHILE-BLOCK"),nl(),
-                        mknode("",(struct node*[]){$5,NULL}),
-                        mknode1(")"),
-                        NULL});
-                $$ = mknode("#",(struct node*[]){
-                        mknode1("(WHILE"),
-                        nl(),whileConds,
-                        nl(),whileBlock,
-                        nl(),mknode1(")"),
-                        nl()
-                        ,NULL});
+            struct node* whileConds = mknode("",(struct node*[]){
+                    mknode1("(WHILE-INIT"),nl(),
+                    mknode("",(struct node*[]){$3,NULL}),
+                    mknode1(")"),
+                    NULL});
+            struct node* whileBlock = mknode("",(struct node*[]){
+                    mknode1("(WHILE-BLOCK"),nl(),
+                    mknode("",(struct node*[]){$5,NULL}),
+                    mknode1(")"),
+                    NULL});
+            $$ = mknode("#",(struct node*[]){
+                    mknode1("(WHILE"),
+                    nl(),whileConds,
+                    nl(),whileBlock,
+                    nl(),mknode1(")"),
+                    nl()
+                    ,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
         }
         ;
 
 for_st:
         FOR '(' assignment_st ';' exp ';' assignment_st ')' statement_block {
-                struct node* forConds = mknode("",(struct node*[]){
-                        mknode1("(FOR-INIT"),nl(),
-                        mknode("",(struct node*[]){$3,NULL}),
-                        mknode("",(struct node*[]){$5,NULL}),nl(),
-                        mknode("",(struct node*[]){$7,NULL}),
-                        mknode1(")"),
-                        NULL});
-                struct node* forBlock = mknode("",(struct node*[]){
-                        mknode1("(FOR-BLOCK"),nl(),
-                        mknode("",(struct node*[]){$9,NULL}),nl(),
-                        mknode1(")"),
-                        NULL});
-                $$ = mknode("#",(struct node*[]){
-                        mknode1("(FOR"),
-                        nl(),forConds,
-                        nl(),forBlock,
-                        nl(),mknode1(")"),
-                        nl()
-                        ,NULL});
+            struct node* forConds = mknode("",(struct node*[]){
+                    mknode1("(FOR-INIT"),nl(),
+                    mknode("",(struct node*[]){$3,NULL}),
+                    mknode("",(struct node*[]){$5,NULL}),nl(),
+                    mknode("",(struct node*[]){$7,NULL}),
+                    mknode1(")"),
+                    NULL});
+            struct node* forBlock = mknode("",(struct node*[]){
+                    mknode1("(FOR-BLOCK"),nl(),
+                    mknode("",(struct node*[]){$9,NULL}),nl(),
+                    mknode1(")"),
+                    NULL});
+            $$ = mknode("#",(struct node*[]){
+                    mknode1("(FOR"),
+                    nl(),forConds,
+                    nl(),forBlock,
+                    nl(),mknode1(")"),
+                    nl()
+                    ,NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
+            
+            addVarArrToScope($5->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($5->use_scope->funcsArr, $$->use_scope);
+            
+            addVarArrToScope($7->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($7->use_scope->funcsArr, $$->use_scope);
         }
         ;
         /* void addVarArrToScope(VarArr* varArr, Scope* scope); */
 
-/* 
-    here continue
-    TODO:
-        add assignment_st use_scope to the scope of the statement
-        and to everywhere else
- */
+
 assignment_st:
         lhs '=' exp {
             struct node* expTemp = mknode("",(struct node*[]){$3,NULL});
@@ -330,8 +388,6 @@ assignment_st:
             addVarArrToScope($1->use_scope->varArr, $$->use_scope);
             addVarArrToScope($3->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
-            // printf("assignment_st\n");
-            // printScope($$->use_scope,8888);
         }
         ;
 
@@ -412,10 +468,6 @@ func_call:
             $$->use_scope = newScope();
             add_args_to_scope($3, $$->use_scope);
             appendFunctionArr($$->use_scope->funcsArr, newFunction($1->token,NONE_T,newVarArr()));
-            // printf("func_call\n");
-            // printtree_REAL($3,0);
-            // printf("\n");
-            // printScope($$->use_scope,1010);
         }
         ;
 

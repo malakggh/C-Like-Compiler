@@ -74,6 +74,7 @@ typedef struct node {
     enum Type type;
     Scope* scope;
     Scope* use_scope;
+    Scope* pointer;
 } node;
 #define YYSTYPE node* 
 // ##########################################################
