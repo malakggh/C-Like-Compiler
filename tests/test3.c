@@ -36,10 +36,16 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
     function xoo2(arg->DD2: real): real{
         var lol : int;
         var x: int;
+        ay = 2;
+        if (d==5)
+           soo(a+q+2,b,c);
+        
+        
         if (x==5)
             return 1;
         {
             var z : int;
+            hii = 2;
             if (x==5)
                 return 1;
             {

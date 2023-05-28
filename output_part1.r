@@ -1,117 +1,142 @@
-assignment_st
-################# Start of Scope 8888 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
-
----- Variables ----
-varArr: [x-NONE, x-NONE, y-NONE, z-NONE]
----- Functions ----
-funcsArr: []
-################# End of Scope 8888 #######################
-assignment_st
-################# Start of Scope 8888 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
-
----- Variables ----
-varArr: [b-NONE, a-NONE, q-NONE, b-NONE, c-NONE]
----- Functions ----
-funcsArr: [{xoo, varArr: [], NONE}]
-################# End of Scope 8888 #######################
-assignment_st
-################# Start of Scope 8888 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
-
----- Variables ----
-varArr: [z-NONE, anna-NONE]
----- Functions ----
-funcsArr: []
-################# End of Scope 8888 #######################
 ################# Start of Scope 9999 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 0
+	Nested Functions: 0
 
----- Variables ----
-varArr: []
----- Functions ----
-funcsArr: [{xoo, varArr: [AA2-INT, BB2-INT, Asx2-BOOL], CHAR}]
+	---- Variables ----
+	varArr: []
+	---- Functions ----
+	funcsArr: [{xoo, varArr: [AA2-INT, BB2-INT, Asx2-BOOL], CHAR}]
 ################# End of Scope 9999 #######################
 stack:
 ################# Start of Scope 0 #####################
-Return Type: CHAR
-Nested Blocks: 5
-Nested Functions: 1
+Declartions: 
+	Return Type: CHAR
+	Nested Blocks: 5
+	Nested Functions: 1
 
----- Variables ----
-varArr: [AA2-INT, BB2-INT, Asx2-BOOL, abc-INT]
----- Functions ----
-funcsArr: [{xoo2, varArr: [DD2-REAL], REAL}]
+	---- Variables ----
+	varArr: [AA2-INT, BB2-INT, Asx2-BOOL, abc-INT]
+	---- Functions ----
+	funcsArr: [{xoo2, varArr: [DD2-REAL], REAL}]
 ################# End of Scope 0 #######################
 ################# Start of Scope 1 #####################
-Return Type: REAL
-Nested Blocks: 5
-Nested Functions: 0
+Declartions: 
+	Return Type: REAL
+	Nested Blocks: 5
+	Nested Functions: 0
 
----- Variables ----
-varArr: [DD2-REAL, lol-INT, x-INT]
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: [DD2-REAL, lol-INT, x-INT]
+	---- Functions ----
+	funcsArr: []
+
+
+Use Scope: 
+	---- Variables ----
+	varArr: [ay-NONE]
+	---- Functions ----
+	funcsArr: []
 ################# End of Scope 1 #######################
 ################# Start of Scope 2 #####################
-Return Type: NONE
-Nested Blocks: 4
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 4
+	Nested Functions: 0
 
----- Variables ----
-varArr: [z-INT]
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: [z-INT]
+	---- Functions ----
+	funcsArr: []
+
+
+Use Scope: 
+	---- Variables ----
+	varArr: [hii-NONE]
+	---- Functions ----
+	funcsArr: []
 ################# End of Scope 2 #######################
 ################# Start of Scope 3 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 0
+	Nested Functions: 0
 
----- Variables ----
-varArr: [ququ_bro2-REAL]
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: [ququ_bro2-REAL]
+	---- Functions ----
+	funcsArr: []
+
+
+Use Scope: 
+	---- Variables ----
+	varArr: [b-NONE, a-NONE, q-NONE, b-NONE, c-NONE, z-NONE, anna-NONE]
+	---- Functions ----
+	funcsArr: [{xoo, varArr: [], NONE}]
 ################# End of Scope 3 #######################
 ################# Start of Scope 4 #####################
-Return Type: NONE
-Nested Blocks: 2
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 2
+	Nested Functions: 0
 
----- Variables ----
-varArr: [ququ-REAL]
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: [ququ-REAL]
+	---- Functions ----
+	funcsArr: []
 ################# End of Scope 4 #######################
 ################# Start of Scope 5 #####################
-Return Type: NONE
-Nested Blocks: 1
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 0
+	Nested Functions: 0
 
----- Variables ----
-varArr: []
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: []
+	---- Functions ----
+	funcsArr: []
 ################# End of Scope 5 #######################
 ################# Start of Scope 6 #####################
-Return Type: NONE
-Nested Blocks: 0
-Nested Functions: 0
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 1
+	Nested Functions: 0
 
----- Variables ----
-varArr: []
----- Functions ----
-funcsArr: []
+	---- Variables ----
+	varArr: []
+	---- Functions ----
+	funcsArr: []
 ################# End of Scope 6 #######################
+################# Start of Scope 7 #####################
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 0
+	Nested Functions: 0
+
+	---- Variables ----
+	varArr: []
+	---- Functions ----
+	funcsArr: []
+
+
+Use Scope: 
+	---- Variables ----
+	varArr: [x-NONE, x-NONE, y-NONE, z-NONE]
+	---- Functions ----
+	funcsArr: []
+################# End of Scope 7 #######################
+################# Start of Scope 8 #####################
+Declartions: 
+	Return Type: NONE
+	Nested Blocks: 0
+	Nested Functions: 0
+
+	---- Variables ----
+	varArr: []
+	---- Functions ----
+	funcsArr: []
+################# End of Scope 8 #######################
 printing tree
     (CODE
         (FUNC
@@ -137,6 +162,24 @@ printing tree
                                 x
                                 Type: INT
                             )
+                            (=ay
+                                2)
+                            (IF
+                                ( ==
+                                    d
+                                    5
+                                )
+                                function call soo(( +
+        ( +
+            a
+            q
+        )
+    
+        2
+    )
+    ,b,c)
+                            
+                            )
                             (IF
                                 ( ==
                                     x
@@ -150,6 +193,8 @@ printing tree
                                     z
                                     Type: INT
                                 )
+                                (=hii
+                                    2)
                                 (IF
                                     ( ==
                                         x

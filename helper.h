@@ -58,6 +58,7 @@ typedef struct Scope
     enum Type returnType;
     int nestedBlocks;
     int nestedFuncs;
+    struct Scope* useScope;
 }Scope;
 
 typedef struct ScopeStack{

@@ -94,6 +94,7 @@ func_or_prod:
             addFunctionArrToScope($9->scope->funcsArr, block_scope);
             block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
             block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
+            block_scope->useScope = $9->scope->useScope;
             pushScope(stack, block_scope);    
             // printScopeStack(stack);
 
@@ -146,10 +147,14 @@ args_var:
 
 block: comment_st code vars statements{
             $$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
-            Scope* currentScope = newScope();
-            add_vars_to_scope($3, currentScope);
-            add_functions_to_scope($2, currentScope);
-            $$->scope = currentScope;
+
+            $$->scope = newScope();
+            add_vars_to_scope($3, $$->scope);
+            add_functions_to_scope($2, $$->scope);
+
+            $$->use_scope = newScope();
+            add_statements_to_scope($4, $$->use_scope);
+            $$->scope->useScope = $$->use_scope;
         }
         ;
 
@@ -159,7 +164,7 @@ comment_st:
         ;
 
 statements:
-        statement statements {$$ = mknode("#stmts",(struct node*[]){$1,$2,NULL});}
+        statement statements {$$ = mknode("#statements",(struct node*[]){$1,$2,NULL});}
         | {$$=mknode1("#");}
         ;
 
@@ -173,38 +178,60 @@ statement:
         |do_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
         |while_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
         |for_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        |assignment_st ';' {$$ = mknode("#",(struct node*[]){$1,NULL});}
-        |func_call ';' {$$ = mknode("#",(struct node*[]){$1,nl(),NULL});}
-        |COMMENT {$$ = mknode1("#");printf("comment...\n");}
+        |assignment_st ';' {
+                $$ = mknode("#",(struct node*[]){$1,NULL});
+                $$->use_scope = $1->use_scope;
+        }
+        |func_call ';' {
+            $$ = mknode("#",(struct node*[]){$1,nl(),NULL});
+            $$->use_scope = $1->use_scope;
+        }
         |new_block{
                 $$ = mknode("#",(struct node*[]){mknode1("(BLOCK"),nl(),
                 mknode("",(struct node*[]){$1,NULL})
                 ,mknode1(")"),nl(),NULL});
                 $$->scope = $1->scope;
         }
+        |COMMENT {$$ = mknode1("#");printf("comment...\n");}
         ;
-
+/* here check why one-liner condtions doesn't appear */
 statement_block:
-        statement {$$ = mknode("#statement_block",(struct node*[]){$1,NULL});}
+        statement {
+            $$ = mknode("#statement_block",(struct node*[]){$1,NULL});
+            $$->scope = newScope();
+            $$->use_scope = newScope();
+            add_statements_to_scope($1, $$->use_scope);
+            $$->scope->useScope = $$->use_scope;
+            pushScope(stack,$$->scope);
+        }
         |return_st {$$ = mknode("#",(struct node*[]){$1,NULL});}
 
 new_block: 
         '{' vars statements return_st'}'{
-			$$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
+            $$ = mknode("#",(struct node*[]){$2,$3,$4,NULL});
+
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
             $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
+
+            $$->use_scope = newScope();
+            add_statements_to_scope($3, $$->use_scope);
+            $$->scope->useScope = $$->use_scope;
+
             pushScope(stack,$$->scope);
-            // printScopeStack(stack);
         }
         |'{' vars statements'}'{
             $$ = mknode("#",(struct node*[]){$2,$3,NULL});
+
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
             $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
+
+            $$->use_scope = newScope();
+            add_statements_to_scope($3, $$->use_scope);
+            $$->scope->useScope = $$->use_scope;
+            
             pushScope(stack,$$->scope);
-            // printScopeStack(stack);
-            // printf("\nblock inside me %d\n",howManyBlockIhaveInside($3,0));
         }
         ;
 
@@ -303,9 +330,9 @@ assignment_st:
             addVarArrToScope($1->use_scope->varArr, $$->use_scope);
             addVarArrToScope($3->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
-            printf("assignment_st\n");
-            printScope($$->use_scope,8888);
-            }
+            // printf("assignment_st\n");
+            // printScope($$->use_scope,8888);
+        }
         ;
 
 lhs:

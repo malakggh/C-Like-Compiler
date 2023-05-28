@@ -280,6 +280,7 @@ Scope* newScope() {
     scope->returnType = NONE_T;
     scope->nestedBlocks = 0;
     scope->nestedFuncs = 0;
+    scope->useScope = NULL;
     return scope;
 }
 
@@ -404,25 +405,38 @@ void printFunctionArr(FunctionArr* funcsArr){
     printf("]\n");
 }
 
+void printUseScope(Scope* scope){
+    if (scope == NULL) {
+        return;
+    }
+    if (scope->funcsArr->len==0 && scope->varArr->len==0) return;
+    printf("\n\nUse Scope: \n");
+    printf("\t---- Variables ----\n\t");
+    printVarArr(scope->varArr);
+    printf("\n");
+    
+    printf("\t---- Functions ----\n\t");
+    printFunctionArr(scope->funcsArr);
+}
 
 void printScope(Scope* scope, int i) {
     if (scope == NULL) {
         printf("scope %d: NULL\n", i);
         return;
     }
-    
     printf("################# Start of Scope %d #####################\n", i);
-    printf("Return Type: %s\n", getTypeAsString(scope->returnType));
-    printf("Nested Blocks: %d\n", scope->nestedBlocks);
-    printf("Nested Functions: %d\n\n", scope->nestedFuncs);
+    printf("Declartions: \n");
+    printf("\tReturn Type: %s\n", getTypeAsString(scope->returnType));
+    printf("\tNested Blocks: %d\n", scope->nestedBlocks);
+    printf("\tNested Functions: %d\n\n", scope->nestedFuncs);
     
-    printf("---- Variables ----\n");
+    printf("\t---- Variables ----\n\t");
     printVarArr(scope->varArr);
     printf("\n");
     
-    printf("---- Functions ----\n");
+    printf("\t---- Functions ----\n\t");
     printFunctionArr(scope->funcsArr);
-    
+    printUseScope(scope->useScope);
     printf("################# End of Scope %d #######################\n", i);
 }
 
@@ -791,6 +805,23 @@ node* add_args_to_scope(node* tree, Scope* scope){
     }
     for (int i = 0; i < tree->child_num; i++) {
         add_args_to_scope(tree->children[i], scope);
+    }
+    return NULL;
+}
+
+node* add_statements_to_scope(node* statementsTree, Scope* scope){
+    if (statementsTree == NULL) return NULL;
+    if (statementsTree->children == NULL) return NULL; 
+    if (strcmp(statementsTree->token,"#statements")==0){     
+        node* statement = statementsTree->children[0]; 
+        if (statement->use_scope != NULL){
+            addVarArrToScope(statement->use_scope->varArr,scope);
+            addFunctionArrToScope(statement->use_scope->funcsArr,scope);
+            statement->use_scope=NULL;
+        }
+    }
+    for (int i = 0; i < statementsTree->child_num; i++) {
+        add_statements_to_scope(statementsTree->children[i], scope);
     }
     return NULL;
 }
