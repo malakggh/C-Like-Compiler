@@ -517,35 +517,57 @@ void printSemanticOrder(node* tree){
 }
 // here to continue
 // trying to print the scopes in the right order
-void printSemanticOrder_Scopes(node* tree){
+void printSemanticOrder_Scopes(node* tree,ScopeStack* stack){
     if (tree == NULL) return;
 
 
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
-            printf("BODY:\n");
+            // printf("BODY:\n");
             // printtree(tree->children[i+2],0);
-            printScope(tree->children[i+2]->pointer,0);
+            // printScope(tree->children[i+2]->pointer,0);
+            pushScope(stack,tree->children[i+2]->pointer);
             child->token = "(BODY-DONE";
         }
         if (strcmp(child->token,"(BLOCK")==0){
-            printf("BLOCK:\n");
+            // printf("BLOCK:\n");
             // printtree(tree->children[i+2]->children[0],0);
-            printScope(tree->children[i+2]->children[0]->pointer,0);
+            // printScope(tree->children[i+2]->children[0]->pointer,0);
+            pushScope(stack,tree->children[i+2]->children[0]->pointer);
             child->token = "(BLOCK-DONE";
         }
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
-                printf("#statement_block:\n");
+                // printf("#statement_block:\n");
                 // printtree(child->children[0],0);
-                printScope(child->children[0]->pointer,0);
+                // printScope(child->children[0]->pointer,0);
+                pushScope(stack,child->children[0]->pointer);
                 child->token = "#statement_block-DONE";
         }
     }
 
     for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder_Scopes(tree->children[i]);
+        printSemanticOrder_Scopes(tree->children[i],stack);
+    }
+    for(int i=0; i<tree->child_num; i++){
+        node* child = tree->children[i];
+        if (strcmp(child->token,"(BODY-DONE")==0){
+            printScopeStack(stack);
+            printf("-*-*-*-*processing this scope-*-*-*-*\n");
+            popScope(stack);
+        }
+        if (strcmp(child->token,"(BLOCK-DONE")==0){
+            printScopeStack(stack);
+            printf("-*-*-*-*processing this scope-*-*-*-*\n");
+            popScope(stack);
+        }
+        if (strcmp(child->token,"#statement_block-DONE")==0 && 
+            !(strcmp(child->children[0]->token,"#new_block")==0)){
+                printScopeStack(stack);       
+            printf("-*-*-*-*processing this scope-*-*-*-*\n");
+            popScope(stack);
+        }
     }
 }
 

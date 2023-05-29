@@ -31,6 +31,9 @@ function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
     return 0;
 }
 */
+function hello(arg->DD2: real): real{
+    return 2.0;
+}
 
 function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
     function xoo2(arg->DD2: real): real{

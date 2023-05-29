@@ -11,6 +11,7 @@
     int yylex();
     struct node* head;
     struct ScopeStack* stack = NULL;
+    struct ScopeStack* test_stack = NULL;
     struct Scope* global_scope = NULL;
 %}
 
@@ -44,12 +45,15 @@ code_global:
                 // nestTheStack(stack);
 
 
-                printScope(global_scope,9999);
-                printScopeStack(stack);
+                // printScope(global_scope,9999);
+                // printScopeStack(stack);
+
                 semantics($1,stack);
                 // printtree($1,0);
                 // printSemanticOrder($1);
-                printSemanticOrder_Scopes($1);
+                
+
+                printSemanticOrder_Scopes($1,test_stack);
                 // free the stack
                 stack->len = 0;
         } code_global {
@@ -555,6 +559,8 @@ exp:
 int main(){
         stack = newScopeStack();
         global_scope = newScope();
+        test_stack = newScopeStack();
+        pushScope(test_stack, global_scope);
         yyparse();
         struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
         printf("printing tree\n");
