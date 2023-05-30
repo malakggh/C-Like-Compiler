@@ -12,7 +12,6 @@ int print = 0;
 "arg->"     { if(print) printf("ARGS\n"); return ARGS; }
 "true"      { if(print) printf("TRUE_\n"); return TRUE_; }
 "false"     { if(print) printf("FALSE_\n"); return FALSE_; }
-"main"      { if(print) printf("MAIN\n"); return MAIN; }
 "void"      { if(print) printf("VOID\n"); return VOID; }
 "null"      { if(print) printf("NULL_\n"); return NULL_; }
 "if"        { if(print) printf("IF\n"); return IF; }

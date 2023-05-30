@@ -57,39 +57,38 @@ extern int yydebug;
     ARGS = 258,                    /* ARGS  */
     TRUE_ = 259,                   /* TRUE_  */
     FALSE_ = 260,                  /* FALSE_  */
-    MAIN = 261,                    /* MAIN  */
-    VOID = 262,                    /* VOID  */
-    NULL_ = 263,                   /* NULL_  */
-    IF = 264,                      /* IF  */
-    ELSE = 265,                    /* ELSE  */
-    FOR = 266,                     /* FOR  */
-    WHILE = 267,                   /* WHILE  */
-    DO = 268,                      /* DO  */
-    FUNC = 269,                    /* FUNC  */
-    RETURN = 270,                  /* RETURN  */
-    INT = 271,                     /* INT  */
-    INT_P = 272,                   /* INT_P  */
-    CHAR = 273,                    /* CHAR  */
-    CHAR_P = 274,                  /* CHAR_P  */
-    REAL = 275,                    /* REAL  */
-    REAL_P = 276,                  /* REAL_P  */
-    BOOL = 277,                    /* BOOL  */
-    VAR = 278,                     /* VAR  */
-    STRING = 279,                  /* STRING  */
-    EQEQ = 280,                    /* EQEQ  */
-    SMALL_EQ = 281,                /* SMALL_EQ  */
-    BIG_EQ = 282,                  /* BIG_EQ  */
-    NOT_EQ = 283,                  /* NOT_EQ  */
-    OR = 284,                      /* OR  */
-    AND = 285,                     /* AND  */
-    COMMENT = 286,                 /* COMMENT  */
-    ID = 287,                      /* ID  */
-    DIGITS_VALUE = 288,            /* DIGITS_VALUE  */
-    HEX_VALUE = 289,               /* HEX_VALUE  */
-    REAL_VALUE = 290,              /* REAL_VALUE  */
-    STRING_VALUE = 291,            /* STRING_VALUE  */
-    CHAR_VALUE = 292,              /* CHAR_VALUE  */
-    non_else = 293                 /* non_else  */
+    VOID = 261,                    /* VOID  */
+    NULL_ = 262,                   /* NULL_  */
+    IF = 263,                      /* IF  */
+    ELSE = 264,                    /* ELSE  */
+    FOR = 265,                     /* FOR  */
+    WHILE = 266,                   /* WHILE  */
+    DO = 267,                      /* DO  */
+    FUNC = 268,                    /* FUNC  */
+    RETURN = 269,                  /* RETURN  */
+    INT = 270,                     /* INT  */
+    INT_P = 271,                   /* INT_P  */
+    CHAR = 272,                    /* CHAR  */
+    CHAR_P = 273,                  /* CHAR_P  */
+    REAL = 274,                    /* REAL  */
+    REAL_P = 275,                  /* REAL_P  */
+    BOOL = 276,                    /* BOOL  */
+    VAR = 277,                     /* VAR  */
+    STRING = 278,                  /* STRING  */
+    EQEQ = 279,                    /* EQEQ  */
+    SMALL_EQ = 280,                /* SMALL_EQ  */
+    BIG_EQ = 281,                  /* BIG_EQ  */
+    NOT_EQ = 282,                  /* NOT_EQ  */
+    OR = 283,                      /* OR  */
+    AND = 284,                     /* AND  */
+    COMMENT = 285,                 /* COMMENT  */
+    ID = 286,                      /* ID  */
+    DIGITS_VALUE = 287,            /* DIGITS_VALUE  */
+    HEX_VALUE = 288,               /* HEX_VALUE  */
+    REAL_VALUE = 289,              /* REAL_VALUE  */
+    STRING_VALUE = 290,            /* STRING_VALUE  */
+    CHAR_VALUE = 291,              /* CHAR_VALUE  */
+    non_else = 292                 /* non_else  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -101,39 +100,38 @@ extern int yydebug;
 #define ARGS 258
 #define TRUE_ 259
 #define FALSE_ 260
-#define MAIN 261
-#define VOID 262
-#define NULL_ 263
-#define IF 264
-#define ELSE 265
-#define FOR 266
-#define WHILE 267
-#define DO 268
-#define FUNC 269
-#define RETURN 270
-#define INT 271
-#define INT_P 272
-#define CHAR 273
-#define CHAR_P 274
-#define REAL 275
-#define REAL_P 276
-#define BOOL 277
-#define VAR 278
-#define STRING 279
-#define EQEQ 280
-#define SMALL_EQ 281
-#define BIG_EQ 282
-#define NOT_EQ 283
-#define OR 284
-#define AND 285
-#define COMMENT 286
-#define ID 287
-#define DIGITS_VALUE 288
-#define HEX_VALUE 289
-#define REAL_VALUE 290
-#define STRING_VALUE 291
-#define CHAR_VALUE 292
-#define non_else 293
+#define VOID 261
+#define NULL_ 262
+#define IF 263
+#define ELSE 264
+#define FOR 265
+#define WHILE 266
+#define DO 267
+#define FUNC 268
+#define RETURN 269
+#define INT 270
+#define INT_P 271
+#define CHAR 272
+#define CHAR_P 273
+#define REAL 274
+#define REAL_P 275
+#define BOOL 276
+#define VAR 277
+#define STRING 278
+#define EQEQ 279
+#define SMALL_EQ 280
+#define BIG_EQ 281
+#define NOT_EQ 282
+#define OR 283
+#define AND 284
+#define COMMENT 285
+#define ID 286
+#define DIGITS_VALUE 287
+#define HEX_VALUE 288
+#define REAL_VALUE 289
+#define STRING_VALUE 290
+#define CHAR_VALUE 291
+#define non_else 292
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -146,3 +146,9 @@ void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope
 void checkDuplicateVarOrFuncInStack(ScopeStack* stack);
 
 void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack);
+
+void mainCheck(Scope* scopeOfFunc);
+
+void processScope(ScopeStack* stack);
+
+void checkFunctionReturnType_9(ScopeStack* stack);

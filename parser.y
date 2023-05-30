@@ -16,7 +16,7 @@
 %}
 
 
-%token ARGS TRUE_ FALSE_ MAIN VOID NULL_ IF ELSE FOR WHILE DO FUNC RETURN INT INT_P CHAR CHAR_P REAL REAL_P BOOL VAR STRING EQEQ SMALL_EQ BIG_EQ NOT_EQ OR AND COMMENT ID DIGITS_VALUE HEX_VALUE REAL_VALUE STRING_VALUE CHAR_VALUE
+%token ARGS TRUE_ FALSE_ VOID NULL_ IF ELSE FOR WHILE DO FUNC RETURN INT INT_P CHAR CHAR_P REAL REAL_P BOOL VAR STRING EQEQ SMALL_EQ BIG_EQ NOT_EQ OR AND COMMENT ID DIGITS_VALUE HEX_VALUE REAL_VALUE STRING_VALUE CHAR_VALUE
 
 %left '+' '-'
 %left '*' '/'
@@ -60,9 +60,7 @@ func_or_prod:
                 mknode1("(BODY"),nl(), blockTemp, mknode1(")"),nl(),
                 NULL});
             
-            struct node* func = mknode("",(struct node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
-            $$ = func;
-
+            $$ = mknode("",(struct node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
 
             struct Scope* currentScope = newScope();
             struct VarArr* parametersArr = newVarArr();
@@ -71,6 +69,15 @@ func_or_prod:
             appendFunctionArr(currentScope->funcsArr, newFunc);
             $$->scope = currentScope;
             $$->pointer = currentScope;
+
+            // check 1 + 2 (if main exists once and if it's void and has no args)
+            mainCheck(currentScope);
+
+            // check 9 (function can not return string)
+            if ($7->type == STRING_T){
+                printf("Error: function can not return string\n");
+                exit(0);
+            }
 
             struct Scope* block_scope = newScope();
             block_scope->varArr = deepCopyVarArr(newFunc->varArr);
@@ -86,6 +93,7 @@ func_or_prod:
             //pushScope(stack, block_scope);    
             blockTemp->pointer = block_scope;
             checkDuplicateVarOrFuncInScope(block_scope);
+
             // printScopeStack(stack);
 
         }
@@ -102,6 +110,31 @@ func_or_prod:
                 NULL});
             
             $$ = mknode("",(struct node*[]){mknode1("(FUNC"),nl(),temp,mknode1(")"),nl(),NULL});
+
+
+            struct Scope* currentScope = newScope();
+            struct VarArr* parametersArr = newVarArr();
+            getFunctionVarArr_Scanner(parTemp, parametersArr);
+            struct Function* newFunc = newFunction($2->token, VOID_T, parametersArr);
+            appendFunctionArr(currentScope->funcsArr, newFunc);
+            $$->scope = currentScope;
+            $$->pointer = currentScope;
+
+            // check 1 + 2 (if main exists once and if it's void and has no args)
+            mainCheck(currentScope);
+
+            struct Scope* block_scope = newScope();
+            block_scope->varArr = deepCopyVarArr(newFunc->varArr);
+            block_scope->returnType = newFunc->returnType;
+            // extract the vars from the block
+            addVarArrToScope($9->scope->varArr, block_scope);
+            addFunctionArrToScope($9->scope->funcsArr, block_scope);
+            block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
+            block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
+            block_scope->useScope = $9->scope->useScope;
+            //pushScope(stack, block_scope);    
+            blockTemp->pointer = block_scope;
+            checkDuplicateVarOrFuncInScope(block_scope);
         }
         ;
 
@@ -221,14 +254,14 @@ statement_block:
             }
         }
         |return_st {
-            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$ = mknode("#statement_block",(struct node*[]){$1,NULL});
             $$->scope = newScope();
             $$->use_scope = $1->use_scope;
 
             $$->scope->useScope = $$->use_scope;
             
             //pushScope(stack, block_scope);    
-            $$->pointer = $$->scope;
+            $1->pointer = $$->scope;
             checkDuplicateVarOrFuncInScope($$->scope);
         }
 
@@ -543,23 +576,23 @@ exp:
 
 #include "lex.yy.c"
 int main(){
-        /* stack = newScopeStack(); */
-        global_scope = newScope();
-        test_stack = newScopeStack();
-        pushScope(test_stack, global_scope);
-        yyparse();
-        struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
-        semantic(temp,test_stack,global_scope);
-        printf("printing tree\n");
-        printtree(temp,0);
-        printf("done printing tree\n");
-        /* semanticsCheck(temp); */
+    /* stack = newScopeStack(); */
+    global_scope = newScope();
+    test_stack = newScopeStack();
+    pushScope(test_stack, global_scope);
+    yyparse();
+    struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
+    semantic(temp,test_stack,global_scope);
+    printf("printing tree\n");
+    printtree(temp,0);
+    printf("done printing tree\n");
+    /* semanticsCheck(temp); */
 }
 
 int yyerror(char* e){
-        int yydebug = 1;
-        fflush(stdout);
-        fprintf(stderr,"Error %s at Line %d\n",e,yylineno);
-        fprintf(stderr,"%s Rejected\n",yytext);
-        return 0;
+    int yydebug = 1;
+    fflush(stdout);
+    fprintf(stderr,"Error %s at Line %d\n",e,yylineno);
+    fprintf(stderr,"%s Rejected\n",yytext);
+    return 0;
 }

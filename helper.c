@@ -469,23 +469,6 @@ void reverseStack(ScopeStack* stack){
 }
 
 
-// void nestTheStack(ScopeStack* stack){
-//     if (stack == NULL) return;
-//     for(int i=stack->len-1; i>=1; i--){
-//         Scope* scope = stack->scopes[i];
-//         Scope* nextScope = stack->scopes[i-1];
-//         if (scope->nestedBlocks + 1 == nextScope->nestedBlocks){
-//             continue;
-//         }else{
-//             ScopeStack* subStack = scope->stack;
-//             for(int j=stack->len-1; j>=i; j--){
-//                 Scope* currentScope = stack->scopes[j];
-//                 pushScope(subStack, currentScope);
-//                 popScope(stack);
-//             }
-//         }
-//     }
-// }
 
 void printSemanticOrder(node* tree){
     if (tree == NULL) return;
@@ -527,6 +510,7 @@ void startSemanticCheck(node* tree,ScopeStack* stack){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
             pushScope(stack,tree->children[i+2]->pointer);
+            // printf("pushing function %s scope\n",tree->children[i-11]->token);
         }
         if (strcmp(child->token,"(BLOCK")==0){
             pushScope(stack,tree->children[i+2]->children[0]->pointer);
@@ -547,14 +531,14 @@ void startSemanticCheck(node* tree,ScopeStack* stack){
         if (strcmp(child->token,"(BODY")==0){
             if(printCheck) printScopeStack(stack);
             if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+            processScope(stack);
             if(printCheck) printScope(topScope(stack), stack->len-1);
             popScope(stack);
         }
         if (strcmp(child->token,"(BLOCK")==0){
             if(printCheck) printScopeStack(stack);
             if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+            processScope(stack);
             if(printCheck) printScope(topScope(stack), stack->len-1);
             popScope(stack);
         }
@@ -562,14 +546,14 @@ void startSemanticCheck(node* tree,ScopeStack* stack){
             !(strcmp(child->children[0]->token,"#new_block")==0)){
                 if(printCheck) printScopeStack(stack);
                 if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-                checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+                processScope(stack);
                 if(printCheck) printScope(topScope(stack), stack->len-1);
                 popScope(stack);
         }
     }
 }
 
-void semantic(node* tree,ScopeStack* stack, Scope* global_scope){
+void semantic_for_each_function(node* tree,ScopeStack* stack, Scope* global_scope){
     if (tree == NULL) return;
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
@@ -581,9 +565,53 @@ void semantic(node* tree,ScopeStack* stack, Scope* global_scope){
         }
     }
     for(int i=0; i<tree->child_num; i++){
-        semantic(tree->children[i],stack,global_scope);
+        semantic_for_each_function(tree->children[i],stack,global_scope);
     }
 }
+
+int mainFound = 0;
+
+void semantic(node* tree,ScopeStack* stack, Scope* global_scope){
+    if (mainFound == 0){
+        printf("Error: main function is not defined\n");
+        exit(1);
+    }
+    semantic_for_each_function(tree,stack,global_scope);
+}
+
+// check if main exists once and if it's void and has no args
+void mainCheck(Scope* scopeOfFunc){
+    Function* currentFunction = scopeOfFunc->funcsArr->funcs[0];
+    if (mainFound && strcmp(currentFunction->name,"main")==0){
+        printf("Error: main function is defined more than once\n");
+        exit(1);
+    }
+    if (!(strcmp(currentFunction->name,"main")==0))
+        return;
+    mainFound = 1;
+
+    if (currentFunction->returnType != VOID_T){
+        printf("Error: main function must return void\n");
+        exit(1);
+    }
+
+    if (currentFunction->varArr->len != 0){
+        printf("Error: main function must not have any arguments\n");
+        exit(1);
+    }
+
+
+}
+
+void processScope(ScopeStack* stack){
+    printScope(topScope(stack), stack->len-1);
+    checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+
+}
+
+// void checkFunctionReturnType_9(ScopeStack* stack){
+
+// }
 
 void checkDuplicateVarOrFuncInScope(Scope* scope){
     if (scope == NULL) return;
@@ -661,6 +689,8 @@ int howManyFunctionsIHaveInside(node* tree,int count){
 
 
 
+
+// these functions are not in use atm
 void semanticsCheck(node* tree){
     printf("semanticsCheck\n");
     // Create a scope stack
@@ -863,8 +893,10 @@ node* add_args_to_scope(node* tree, Scope* scope){
     if (tree->children == NULL) return NULL; 
     if (strcmp(tree->token,"#exp_list")==0){     
         node* var_st = tree->children[0];
-        if (var_st->use_scope != NULL)
+        if (var_st->use_scope != NULL){
             addVarArrToScope(var_st->use_scope->varArr,scope);
+            addFunctionArrToScope(var_st->use_scope->funcsArr,scope);
+        }
     }
     for (int i = 0; i < tree->child_num; i++) {
         add_args_to_scope(tree->children[i], scope);
@@ -913,6 +945,7 @@ enum Type getFunctionType(node* func){
         exit(1);
     }
 }
+
 int indexOfSon(node* tree, char* token){
     for (int i = 0; i < tree->child_num; i++) {
         // printf("tree->children[%d]->token = %s\n", i, tree->children[i]->token);
@@ -920,62 +953,4 @@ int indexOfSon(node* tree, char* token){
             return i;
     }
     return -1;
-}
-int test() {
-    // Create a scope stack
-    ScopeStack* stack = newScopeStack();
-
-    // Create the first scope
-    Scope* scope1 = newScope();
-
-    // Add variables to the first scope
-    Var* var1 = newVar("x", INT_T);
-    appendVarArr(scope1->varArr, var1);
-
-    // Add functions to the first scope
-    Function* func1 = newFunction("foo", INT_T, NULL);  // You can pass a VarArr if needed
-    appendFunctionArr(scope1->funcsArr, func1);
-
-    // Push the first scope onto the stack
-    pushScope(stack, scope1);
-
-    // Create a new scope
-    Scope* scope2 = newScope();
-
-    // Add variables to the second scope
-    Var* var2 = newVar("y", REAL_T);
-    appendVarArr(scope2->varArr, var2);
-
-    // Add functions to the second scope
-    Function* func2 = newFunction("bar", VOID_T, NULL);  // You can pass a VarArr if needed
-    appendFunctionArr(scope2->funcsArr, func2);
-
-    // Push the second scope onto the stack
-    pushScope(stack, scope2);
-
-    // Perform searches in the scope stack
-    char* searchVarName = "x";
-    Var* foundVar = searchVarInStack(stack, searchVarName);
-    if (foundVar != NULL) {
-        printf("Variable '%s' found in the stack.\n", searchVarName);
-    } else {
-        printf("Variable '%s' not found in the stack.\n", searchVarName);
-    }
-
-    char* searchFuncName = "bar";
-    Function* foundFunc = searchFunctionInStack(stack, searchFuncName);
-    if (foundFunc != NULL) {
-        printf("Function '%s' found in the stack.\n", searchFuncName);
-    } else {
-        printf("Function '%s' not found in the stack.\n", searchFuncName);
-    }
-
-    // Pop the scopes from the stack
-    popScope(stack); // Pop the second scope
-    popScope(stack); // Pop the first scope
-
-    // Clean up memory
-    // ...
-
-    return 0;
 }

@@ -31,11 +31,10 @@ function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
     return 0;
 }
 */
-function hello(arg->DD2: real): real{
+function main(): void{
     var i1xpromax1: real;
-    return 2.0;
 }
-function hello2(arg->DD2: real): real{
+function hello(arg->DD2: real): real{
     var i1xpromax2: real;
     return 2.0;
 }
@@ -46,7 +45,6 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                 return 1;
             }
             var x,dx: int;
-            var dx:bool;
             var i1,i3,i,ioi,y,ret_b,ret_z3: real;
             if (dx==5){
                 for(i1=0;i1<10;i3=i+1){
@@ -60,16 +58,17 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
             if (x==5)
                 ioi = 2;
             {
-                var z,b,a,q,c,ret_z: int;
+                var z,b,a,q,c,ret_z,ret_a: int;
                 if (x==5)
-                    return ret_a + ret_A(ret_z4);
+                   return ret_a + ret_B(xoo2(),xoo(),ret_z,xoo());
                 {
                     var ququ : real;
                     if (x==2) {{x = x - (y) * z / 3;}}
                 }
                 {
                     var ququ_bro2 : real;
-                    b = xoo(a+q+2,b,c);
+                    b = ret_B(a+q+2,b,c);
+                    a = xoo2(n,m);
                 }
                 /*
                 {
@@ -77,7 +76,7 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                     if (x==2) x = x + 2;
                 }*/
             }
-            return ret_b + ret_B(ret_z3);
+            return ret_b + ret_B(ret_z3,xoo());
         }
     var abc,x,vb,ret_d,ret_c : int;
     if (x==5-vb)
