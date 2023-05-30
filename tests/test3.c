@@ -46,6 +46,7 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                 return 1;
             }
             var x,dx: int;
+            var dx:bool;
             var i1,i3,i,ioi,y,ret_b,ret_z3: real;
             if (dx==5){
                 for(i1=0;i1<10;i3=i+1){
@@ -90,27 +91,4 @@ function hello4(arg->DD2: real): real{
 }
 
 
-function hello1(arg->DD2: real): real{
-    var i1xpromax1: real;
-    return 2.0;
-}
 
-function hello2(arg->DD2: real): real{
-    var i1xpromax1: real;
-    return 2.0;
-}
-
-function hello3(arg->DD2: real): real{
-    var i1xpromax1: real;
-    return 2.0;
-}
-
-function hello4(arg->DD2: real): real{
-    var i1xpromax1: real;
-    return 2.0;
-}
-
-function hello5(arg->DD2: real): real{
-    var i1xpromax1: real;
-    return 2.0;
-}

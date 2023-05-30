@@ -10,7 +10,7 @@
     int yyerror(char* e);
     int yylex();
     struct node* head;
-    struct ScopeStack* stack = NULL;
+//     struct ScopeStack* stack = NULL;
     struct ScopeStack* test_stack = NULL;
     struct Scope* global_scope = NULL;
 %}
@@ -38,32 +38,6 @@ program:
 code_global:
         func_or_prod code_global {
                 $$ = mknode("#global_scope",(struct node*[]){$1,$2,NULL});
-                printScope($1->scope,9999);
-                // since we don't support global variables the only thing that we can get from the child function is
-                // the function name, arguments and return type
-
-                // Scope* globalScope = newScope();
-                // addFunctionArrToScope($1->scope->funcsArr, globalScope);
-                // VarArr* temp = newVarArr();
-                // appendVarArr(temp, newVar_("main_scope"));
-                // addVarArrToScope(temp, globalScope);
-                // $1->pointer = globalScope;
-
-                // reverseStack(stack);
-                
-                // nestTheStack(stack);
-
-
-                // printScope(global_scope,9999);
-                // printScopeStack(stack);
-
-                // printtree($1,0);
-                // printSemanticOrder($1);
-                
-
-                
-                // free the stack
-                // stack->len = 0;
         }
         | {$$=mknode1("#");}
         ;
@@ -109,8 +83,9 @@ func_or_prod:
             block_scope->useScope = $9->scope->useScope;
             addVarArrToScope($10->use_scope->varArr, block_scope->useScope);
             addFunctionArrToScope($10->use_scope->funcsArr, block_scope->useScope);
-            pushScope(stack, block_scope);    
+            //pushScope(stack, block_scope);    
             blockTemp->pointer = block_scope;
+            checkDuplicateVarOrFuncInScope(block_scope);
             // printScopeStack(stack);
 
         }
@@ -239,8 +214,9 @@ statement_block:
 
                 $$->scope->useScope = $$->use_scope;
                 
-                pushScope(stack,$$->scope);
+                //pushScope(stack, block_scope);    
                 $1->pointer = $$->scope;
+                checkDuplicateVarOrFuncInScope($$->scope);
 
             }
         }
@@ -251,8 +227,9 @@ statement_block:
 
             $$->scope->useScope = $$->use_scope;
             
-            pushScope(stack,$$->scope);
+            //pushScope(stack, block_scope);    
             $$->pointer = $$->scope;
+            checkDuplicateVarOrFuncInScope($$->scope);
         }
 
 new_block: 
@@ -269,8 +246,9 @@ new_block:
             addFunctionArrToScope($4->use_scope->funcsArr, $$->use_scope);
             $$->scope->useScope = $$->use_scope;
 
-            pushScope(stack,$$->scope);
+            //pushScope(stack, block_scope);    
             $$->pointer = $$->scope;
+            checkDuplicateVarOrFuncInScope($$->scope);
         }
         |'{' vars statements'}'{
             $$ = mknode("#",(struct node*[]){$2,$3,NULL});
@@ -283,8 +261,9 @@ new_block:
             add_statements_to_scope($3, $$->use_scope);
             $$->scope->useScope = $$->use_scope;
             
-            pushScope(stack,$$->scope);
+            //pushScope(stack, block_scope);    
             $$->pointer = $$->scope;
+            checkDuplicateVarOrFuncInScope($$->scope);
         }
         ;
 
@@ -564,13 +543,13 @@ exp:
 
 #include "lex.yy.c"
 int main(){
-        stack = newScopeStack();
+        /* stack = newScopeStack(); */
         global_scope = newScope();
         test_stack = newScopeStack();
         pushScope(test_stack, global_scope);
         yyparse();
         struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
-        printSemanticOrder_Scopes(temp,test_stack,global_scope);
+        semantic(temp,test_stack,global_scope);
         printf("printing tree\n");
         printtree(temp,0);
         printf("done printing tree\n");

@@ -490,34 +490,36 @@ void reverseStack(ScopeStack* stack){
 void printSemanticOrder(node* tree){
     if (tree == NULL) return;
 
-    for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder(tree->children[i]);
-    }
 
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
             printf("BODY:\n");
             printtree(tree->children[i+2],0);
-            child->token = "(BODY-DONE";
         }
         if (strcmp(child->token,"(BLOCK")==0){
             printf("BLOCK:\n");
             printtree(tree->children[i+2]->children[0],0);
-            child->token = "(BLOCK-DONE";
+        }
+        if (strcmp(child->token,"#global_scope")==0){
+            printf("global_scope:\n");
+            printtree(child->children[0],0);
+            break;
         }
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
                 printf("#statement_block:\n");
                 printtree(child->children[0],0);
-                child->token = "#statement_block-DONE";
         }
+    }
+    for(int i=0; i<tree->child_num; i++){
+        printSemanticOrder(tree->children[i]);
     }
 
 }
 // here to continue
 // trying to print the scopes in the right order
-void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope){
+void startSemanticCheck(node* tree,ScopeStack* stack){
     if (tree == NULL) return;
 
 
@@ -525,30 +527,21 @@ void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
             pushScope(stack,tree->children[i+2]->pointer);
-            // child->token = "(BODY-DONE";
         }
         if (strcmp(child->token,"(BLOCK")==0){
             pushScope(stack,tree->children[i+2]->children[0]->pointer);
-            // child->token = "(BLOCK-DONE";
         }
-        if (strcmp(child->token,"#global_scope")==0){
-            // pushScope(stack,child->children[0]->pointer);
-            addFunctionArrToScope(child->children[0]->pointer->funcsArr, global_scope);
-            printf("global_scope_stack:\n");
-            printScopeStack(stack);
-            break;
-        }
+        
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
                 pushScope(stack,child->children[0]->pointer);
-                // child->token = "#statement_block-DONE";
         }
     }
 
     for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder_Scopes(tree->children[i],stack,global_scope);
+        startSemanticCheck(tree->children[i],stack);
     }
-    int printCheck = 1;
+    int printCheck = 0;
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
@@ -565,13 +558,6 @@ void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope
             if(printCheck) printScope(topScope(stack), stack->len-1);
             popScope(stack);
         }
-        // if (strcmp(child->token,"#global_scope")==0){
-        //     if(printCheck) printScopeStack(stack);
-        //     if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-        //     checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
-        //     if(printCheck) printScope(topScope(stack), stack->len-1);
-        //     popScope(stack);
-        // }
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
                 if(printCheck) printScopeStack(stack);
@@ -583,34 +569,47 @@ void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope
     }
 }
 
-
-void checkDuplicateVarOrFuncInStack(ScopeStack* stack){
-    if (stack == NULL) return;
-    for(int i=0; i<stack->len; i++){
-        // check that each scope has no duplicate variables or functions
-        Scope* scope = stack->scopes[i];
-        for(int j=0; j<scope->varArr->len; j++){
-            Var* var = scope->varArr->vars[j];
-            for(int k=j+1; k<scope->varArr->len; k++){
-                Var* var2 = scope->varArr->vars[k];
-                if (strcmp(var->name,var2->name)==0){
-                    printf("Error: found duplicate variable (%s) in the same scope\n", var->name);
-                    exit(1);
-                }
-            }
+void semantic(node* tree,ScopeStack* stack, Scope* global_scope){
+    if (tree == NULL) return;
+    for(int i=0; i<tree->child_num; i++){
+        node* child = tree->children[i];
+        if (strcmp(child->token,"#global_scope")==0){
+            printf("semantics test for function: %s\n",child->children[0]->children[2]->children[0]->token);
+            addFunctionArrToScope(child->children[0]->pointer->funcsArr, global_scope);
+            startSemanticCheck(child->children[0],stack);
+            break;
         }
-        for(int j=0; j<scope->funcsArr->len; j++){
-            Function* func = scope->funcsArr->funcs[j];
-            for(int k=j+1; k<scope->funcsArr->len; k++){
-                Function* func2 = scope->funcsArr->funcs[k];
-                if (strcmp(func->name,func2->name)==0){
-                    printf("Error: found duplicate function (%s) in the same scope\n", func->name);
-                    exit(1);
-                }
+    }
+    for(int i=0; i<tree->child_num; i++){
+        semantic(tree->children[i],stack,global_scope);
+    }
+}
+
+void checkDuplicateVarOrFuncInScope(Scope* scope){
+    if (scope == NULL) return;
+    for(int j=0; j<scope->varArr->len; j++){
+        Var* var = scope->varArr->vars[j];
+        for(int k=j+1; k<scope->varArr->len; k++){
+            Var* var2 = scope->varArr->vars[k];
+            if (strcmp(var->name,var2->name)==0){
+                printf("Error: found duplicate variable (%s) in the same scope\n", var->name);
+                exit(1);
             }
         }
     }
+    for(int j=0; j<scope->funcsArr->len; j++){
+        Function* func = scope->funcsArr->funcs[j];
+        for(int k=j+1; k<scope->funcsArr->len; k++){
+            Function* func2 = scope->funcsArr->funcs[k];
+            if (strcmp(func->name,func2->name)==0){
+                printf("Error: found duplicate function (%s) in the same scope\n", func->name);
+                exit(1);
+            }
+        }
+    }
+    
 }
+
 
 void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack){
     Scope* currentScope = topScope(stack)->useScope;
