@@ -134,3 +134,15 @@ VarArr* getFunctionVarArr(node* func);
 void addVarArrToScope(VarArr* varArr, Scope* scope);
 void addFunctionArrToScope(FunctionArr* funcArr, Scope* scope);
 void reverseStack(ScopeStack* stack);
+
+
+
+// ##########################################################
+
+void printSemanticOrder(node* tree);
+
+void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope);
+
+void checkDuplicateVarOrFuncInStack(ScopeStack* stack);
+
+void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack);

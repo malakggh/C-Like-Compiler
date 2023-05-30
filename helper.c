@@ -429,8 +429,8 @@ void printScope(Scope* scope, int i) {
     printf("################# Start of Scope %d #####################\n", i);
     printf("Declartions: \n");
     printf("\tReturn Type: %s\n", getTypeAsString(scope->returnType));
-    printf("\tNested Blocks: %d\n", scope->nestedBlocks);
-    printf("\tNested Functions: %d\n\n", scope->nestedFuncs);
+    // printf("\tNested Blocks: %d\n", scope->nestedBlocks);
+    // printf("\tNested Functions: %d\n\n", scope->nestedFuncs);
     
     printf("\t---- Variables ----\n\t");
     printVarArr(scope->varArr);
@@ -517,86 +517,72 @@ void printSemanticOrder(node* tree){
 }
 // here to continue
 // trying to print the scopes in the right order
-void printSemanticOrder_Scopes(node* tree,ScopeStack* stack){
+void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope){
     if (tree == NULL) return;
 
 
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
-            // printf("BODY:\n");
-            // printtree(tree->children[i+2],0);
-            // printScope(tree->children[i+2]->pointer,0);
             pushScope(stack,tree->children[i+2]->pointer);
-            child->token = "(BODY-DONE";
+            // child->token = "(BODY-DONE";
         }
         if (strcmp(child->token,"(BLOCK")==0){
-            // printf("BLOCK:\n");
-            // printtree(tree->children[i+2]->children[0],0);
-            // printScope(tree->children[i+2]->children[0]->pointer,0);
             pushScope(stack,tree->children[i+2]->children[0]->pointer);
-            child->token = "(BLOCK-DONE";
+            // child->token = "(BLOCK-DONE";
+        }
+        if (strcmp(child->token,"#global_scope")==0){
+            // pushScope(stack,child->children[0]->pointer);
+            addFunctionArrToScope(child->children[0]->pointer->funcsArr, global_scope);
+            printf("global_scope_stack:\n");
+            printScopeStack(stack);
+            break;
         }
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
-                // printf("#statement_block:\n");
-                // printtree(child->children[0],0);
-                // printScope(child->children[0]->pointer,0);
                 pushScope(stack,child->children[0]->pointer);
-                child->token = "#statement_block-DONE";
+                // child->token = "#statement_block-DONE";
         }
     }
 
     for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder_Scopes(tree->children[i],stack);
+        printSemanticOrder_Scopes(tree->children[i],stack,global_scope);
     }
-    for(int i=0; i<tree->child_num; i++){
-        node* child = tree->children[i];
-        if (strcmp(child->token,"(BODY-DONE")==0){
-            printScopeStack(stack);
-            printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            popScope(stack);
-        }
-        if (strcmp(child->token,"(BLOCK-DONE")==0){
-            printScopeStack(stack);
-            printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            popScope(stack);
-        }
-        if (strcmp(child->token,"#statement_block-DONE")==0 && 
-            !(strcmp(child->children[0]->token,"#new_block")==0)){
-                printScopeStack(stack);       
-            printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            popScope(stack);
-        }
-    }
-}
-
-void semantics_(node* tree,ScopeStack* stack){
-    if (tree == NULL) return;
-
-    for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder(tree->children[i]);
-    }
-
+    int printCheck = 1;
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"(BODY")==0){
-            printf("BODY:\n");
-            printtree(tree->children[i+2],0);
-            child->token = "(BODY-DONE";
+            if(printCheck) printScopeStack(stack);
+            if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
+            checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+            if(printCheck) printScope(topScope(stack), stack->len-1);
+            popScope(stack);
         }
         if (strcmp(child->token,"(BLOCK")==0){
-            printf("BLOCK:\n");
-            printtree(tree->children[i+2]->children[0],0);
-            child->token = "(BLOCK-DONE";
+            if(printCheck) printScopeStack(stack);
+            if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
+            checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+            if(printCheck) printScope(topScope(stack), stack->len-1);
+            popScope(stack);
         }
-        // if (strcmp(child->token,"#statement_block")==0){
-        //     printf("#statement_block:\n");
-        //     printtree(child->children[0],0);
-        //     child->token = "#statement_block-DONE";
+        // if (strcmp(child->token,"#global_scope")==0){
+        //     if(printCheck) printScopeStack(stack);
+        //     if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
+        //     checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+        //     if(printCheck) printScope(topScope(stack), stack->len-1);
+        //     popScope(stack);
         // }
+        if (strcmp(child->token,"#statement_block")==0 && 
+            !(strcmp(child->children[0]->token,"#new_block")==0)){
+                if(printCheck) printScopeStack(stack);
+                if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
+                checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+                if(printCheck) printScope(topScope(stack), stack->len-1);
+                popScope(stack);
+        }
     }
 }
+
 
 void checkDuplicateVarOrFuncInStack(ScopeStack* stack){
     if (stack == NULL) return;
@@ -626,9 +612,29 @@ void checkDuplicateVarOrFuncInStack(ScopeStack* stack){
     }
 }
 
-void semantics(node* tree,ScopeStack* stack){
-    checkDuplicateVarOrFuncInStack(stack);
-    
+void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack){
+    Scope* currentScope = topScope(stack)->useScope;
+    if (currentScope == NULL) return;
+    for(int i=0; i<currentScope->varArr->len; i++){
+        Var* var = currentScope->varArr->vars[i];
+        Var* var2 = searchVarInStack(stack, var->name);
+        if (var2 == NULL){
+            printf("Error: variable (%s) is used before being defined\n", var->name);
+            exit(1);
+        }
+        // update the type of the variable in the current scope
+        var->type = var2->type;
+    }
+    for(int i=0; i<currentScope->funcsArr->len; i++){
+        Function* func = currentScope->funcsArr->funcs[i];
+        Function* func2 = searchFunctionInStack(stack, func->name);
+        if (func2 == NULL){
+            printf("Error: function (%s) is used before being defined\n", func->name);
+            exit(1);
+        }
+        // update the type of the function in the current scope
+        func->returnType = func2->returnType;
+    }
 }
 
 

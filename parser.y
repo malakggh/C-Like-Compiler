@@ -36,11 +36,20 @@ program:
         ;
 
 code_global:
-        func_or_prod {
+        func_or_prod code_global {
+                $$ = mknode("#global_scope",(struct node*[]){$1,$2,NULL});
+                printScope($1->scope,9999);
                 // since we don't support global variables the only thing that we can get from the child function is
                 // the function name, arguments and return type
-                addFunctionArrToScope($1->scope->funcsArr, global_scope);
-                reverseStack(stack);
+
+                // Scope* globalScope = newScope();
+                // addFunctionArrToScope($1->scope->funcsArr, globalScope);
+                // VarArr* temp = newVarArr();
+                // appendVarArr(temp, newVar_("main_scope"));
+                // addVarArrToScope(temp, globalScope);
+                // $1->pointer = globalScope;
+
+                // reverseStack(stack);
                 
                 // nestTheStack(stack);
 
@@ -48,17 +57,14 @@ code_global:
                 // printScope(global_scope,9999);
                 // printScopeStack(stack);
 
-                semantics($1,stack);
                 // printtree($1,0);
                 // printSemanticOrder($1);
                 
 
-                printSemanticOrder_Scopes($1,test_stack);
+                
                 // free the stack
-                stack->len = 0;
-        } code_global {
-                $$ = mknode("#global_scope",(struct node*[]){$1,$2,NULL});
-            }
+                // stack->len = 0;
+        }
         | {$$=mknode1("#");}
         ;
 
@@ -90,6 +96,7 @@ func_or_prod:
             struct Function* newFunc = newFunction($2->token, $7->type, parametersArr);
             appendFunctionArr(currentScope->funcsArr, newFunc);
             $$->scope = currentScope;
+            $$->pointer = currentScope;
 
             struct Scope* block_scope = newScope();
             block_scope->varArr = deepCopyVarArr(newFunc->varArr);
@@ -563,6 +570,7 @@ int main(){
         pushScope(test_stack, global_scope);
         yyparse();
         struct node* temp = mknode("",(struct node*[]){mknode1("(CODE"),nl(),head,mknode1(")"),nl(),NULL});
+        printSemanticOrder_Scopes(temp,test_stack,global_scope);
         printf("printing tree\n");
         printtree(temp,0);
         printf("done printing tree\n");

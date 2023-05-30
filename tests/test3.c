@@ -32,48 +32,85 @@ function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
 }
 */
 function hello(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
+}
+function hello2(arg->DD2: real): real{
+    var i1xpromax2: real;
     return 2.0;
 }
 
 function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
-    function xoo2(arg->DD2: real): real{
-        var lol : int;
-        var x: int;
-        ay = 2;
-        if (dx==5){
-            for(i1=0;i2<10;i3=i+1){
-                    var x : int;
-                    x = 2 + a;
-                }      
-           }
-        
-        
-        if (x==5)
-            ioi = 2;
-        {
-            var z : int;
-            hii = 2;
+        function xoo2(arg->DD2: real): real{
+            function ret_B():int{
+                return 1;
+            }
+            var x,dx: int;
+            var i1,i3,i,ioi,y,ret_b,ret_z3: real;
+            if (dx==5){
+                for(i1=0;i1<10;i3=i+1){
+                        var x,a : int;
+                        var ioi: bool;
+                        x = 2 + a;
+                    }      
+            }
+            
+            
             if (x==5)
-                return ret_a + ret_A(ret_z);
+                ioi = 2;
             {
-                var ququ : real;
-                if (x==2) {{x = x - (y) * z / 3;}}
+                var z,b,a,q,c,ret_z: int;
+                if (x==5)
+                    return ret_a + ret_A(ret_z4);
+                {
+                    var ququ : real;
+                    if (x==2) {{x = x - (y) * z / 3;}}
+                }
+                {
+                    var ququ_bro2 : real;
+                    b = xoo(a+q+2,b,c);
+                }
+                /*
+                {
+                    var ququ_bro3 : real;
+                    if (x==2) x = x + 2;
+                }*/
             }
-            {
-                var ququ_bro2 : real;
-                b = xoo(a+q+2,b,c);
-                z = anna;
-            }
-            /*
-            {
-                var ququ_bro3 : real;
-                if (x==2) x = x + 2;
-            }*/
+            return ret_b + ret_B(ret_z3);
         }
-        return ret_b + ret_B(ret_z);
-    }
-    var abc : int;
+    var abc,x,vb,ret_d,ret_c : int;
     if (x==5-vb)
-        return ret_c + ret_C(ret_z);
-    return ret_d + ret_D(ret_z);
+        return ret_c;
+    return ret_d + hello(2);
+}
+
+function hello4(arg->DD2: real): real{
+    var i1xpromax: real;
+    return 2.0;
+}
+
+
+function hello1(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
+}
+
+function hello2(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
+}
+
+function hello3(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
+}
+
+function hello4(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
+}
+
+function hello5(arg->DD2: real): real{
+    var i1xpromax1: real;
+    return 2.0;
 }
