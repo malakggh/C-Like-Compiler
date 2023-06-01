@@ -17,7 +17,7 @@ enum Type {
     INT_P_T,
     REAL_P_T,
     CHAR_P_T,
-    
+
     STRING_T,
     NULL_T,
     NONE_T
@@ -141,6 +141,7 @@ void popScope(ScopeStack* stack);
 Scope* topScope(ScopeStack* stack);
 Function* searchFunctionInStack(ScopeStack* stack, char* name);
 Var* searchVarInStack(ScopeStack* stack, char* name);
+enum Type searchTypeInStack(ScopeStack* stack);
 void fillScope(ScopeStack* stack, node* tree,Scope* scope, VarArr* varArr, enum Type returnType);
 void fillScopeByTree(ScopeStack* stack, node* tree, Scope* scope);
 // ####################################################################
@@ -179,3 +180,5 @@ void processScope(ScopeStack* stack, node* tree);
 void getEachExpression(node* tree, ScopeStack* stack);
 
 void getExpType(expressionNode* expressionNode, ScopeStack* stack);
+
+Var* getVarOrExit(ScopeStack* stack, char* name);

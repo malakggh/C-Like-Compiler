@@ -24,7 +24,7 @@ printing tree
                     i1xpromax2
                     Type: REAL
                 )
-                (RET 2.0)
+                (RET 'a')
             )
         )
         (FUNC
@@ -74,15 +74,15 @@ printing tree
                                 )
                                 (BLOCK-DONE
                                     (FOR
-                                        (FOR-INIT
-                                            (=i1
+                                        (FOR-INIT-DONE
+                                            (=-DONEi1
                                                 0)
                                             ( <
                                                 i1
                                                 10
                                             )
                                         
-                                            (=i3
+                                            (=-DONEi3
                                                 ( +
                                                     i
                                                     1
@@ -100,7 +100,7 @@ printing tree
                                                     ioi
                                                     Type: BOOL
                                                 )
-                                                (=x
+                                                (=-DONEx
                                                     ( +
                                                         2
                                                         a
@@ -116,9 +116,13 @@ printing tree
                             (IF-DONE
                                 ( ==
                                     x
-                                    5
+                                    ( +
+                                        1
+                                        5
+                                    )
+                                
                                 )
-                                (=ioi
+                                (=-DONEioi
                                     2)
                             
                             )
@@ -139,8 +143,12 @@ printing tree
                                         5
                                     )
                                     (RET ( +
-        ret_a
-        function call ret_B(function call xoo2(),function call xoo(),ret_z,function call xoo())
+        ( +
+            ret_a
+            function call ret_B(function call xoo2(),function call xoo(),ret_z,function call xoo())
+        )
+    
+        1.0
     )
                                     )
                                 
@@ -157,7 +165,7 @@ printing tree
                                         )
                                         (BLOCK-DONE
                                             (BLOCK-DONE
-                                                (=x
+                                                (=-DONEx
                                                     ( -
                                                         x
                                                         ( /
@@ -181,7 +189,7 @@ printing tree
                                         ququ_bro2
                                         Type: REAL
                                     )
-                                    (=b
+                                    (=-DONEb
                                         function call ret_B(( +
         ( +
             a
@@ -193,11 +201,7 @@ printing tree
     ,b,c))
                                 )
                             )
-                            (RET ( +
-        ret_b
-        function call ret_B(ret_z3,function call xoo())
-    )
-                            )
+                            (RET 1.0)
                         )
                     )
                 (VAR 
@@ -245,14 +249,10 @@ printing tree
                         )
                     
                     )
-                    (RET ret_c)
+                    (RET k)
                 
                 )
-                (RET ( +
-        ret_d
-        function call hello(2)
-    )
-                )
+                (RET k)
             )
         )
         (FUNC

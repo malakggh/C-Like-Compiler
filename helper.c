@@ -365,6 +365,15 @@ Var* searchVarInStack(ScopeStack* stack, char* name) {
     return NULL;
 }
 
+enum Type searchTypeInStack(ScopeStack* stack){
+    for (int i = stack->len - 1; i >= 0; i--) {
+        if (stack->scopes[i]->returnType != NONE_T) {
+            return stack->scopes[i]->returnType;
+        }
+    }
+    return NONE_T;
+}
+
 
 void addVarArrToScope(VarArr* varArr, Scope* scope){
     if (varArr == NULL || scope == NULL) return;
@@ -632,12 +641,107 @@ void getEachExpression(node* tree, ScopeStack* stack){
     }
     for (int i = 0; i < tree->child_num; i++) {
         node* child = tree->children[i];
-        if (strcmp(child->token,"(IF")==0){
-            node* exp = tree->children[i+2]->children[0];
-            // printf("printing the expression of if\n");
-            // printtree(exp,1);
+        if (strcmp(child->token,"#ret_st")==0){
+            node* exp = child->children[1];
             getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != searchTypeInStack(stack)){
+                printf("Error: return type is not the same as the function return type\n");
+                exit(1);
+            }
+            child->token = "#ret_st-DONE";
+            return;
+        }else if (strcmp(child->token,"(IF")==0){
+            node* exp = tree->children[i+2]->children[0];
+            getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != BOOL_T){
+                printf("Error: if condition must be of type bool\n");
+                exit(1);
+            }
             child->token = "(IF-DONE";
+            return;
+        }else if(strcmp(child->token,"(IF-ELSE")==0){
+            node* exp = tree->children[i+2]->children[0];
+            getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != BOOL_T){
+                printf("Error: if condition must be of type bool\n");
+                exit(1);
+            }
+            child->token = "(IF-ELSE-DONE";
+            return;
+        }else if(strcmp(child->token,"(DO-WHILE-INIT")==0){
+            node* exp = tree->children[i+2]->children[0];
+            getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != BOOL_T){
+                printf("Error: do-while condition must be of type bool\n");
+                exit(1);
+            }
+            child->token = "(DO-WHILE-INIT-DONE";
+            return;
+        }else if(strcmp(child->token,"(WHILE-INIT")==0){
+            node* exp = tree->children[i+2]->children[0];
+            getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != BOOL_T){
+                printf("Error: while condition must be of type bool\n");
+                exit(1);
+            }
+            child->token = "(WHILE-INIT-DONE";
+            return;
+        }else if(strcmp(child->token,"(FOR-INIT")==0){
+            node* exp = tree->children[i+3]->children[0];
+            getExpType(exp->exp_node,stack);
+            if (exp->exp_node->result != BOOL_T){
+                printf("Error: for condition must be of type bool\n");
+                exit(1);
+            }
+            child->token = "(FOR-INIT-DONE";
+            return;
+        }else if(strcmp(child->token,"#assignment_st")==0){
+            node* exp = child->children[4]->children[0];
+            node* lhs = child->children[1];
+            getExpType(exp->exp_node,stack);
+            // part 14 is here
+            if (strcmp(lhs->token,"#derefId")==0){
+                Var* var = getVarOrExit(stack, lhs->children[1]->token);
+                if (dereferenceOf(var->type) != exp->exp_node->result){
+                    printf("Error: assignment type is not the same as the variable type\n");
+                    exit(1);
+                }
+            }else if (strcmp(lhs->token,"#stringAtIndex")==0){
+                Var* var = getVarOrExit(stack, lhs->children[0]->token);
+                if (var->type != STRING_T){
+                    printf("Error: operator [] can only be used on STRING\n");
+                    exit(1);
+                }
+                node* index = lhs->children[2];
+                getExpType(index->exp_node,stack);
+                if (index->exp_node->result != INT_T){
+                    printf("Error: index of string must be of type INT\n");
+                    exit(1);
+                }
+                if (exp->exp_node->result != CHAR_T || exp->exp_node->result != NULL_T){
+                    printf("Error: STRING[index] can only be assigned to CHAR or NULL\n");
+                    exit(1);
+                }
+
+            }else{
+                // var
+                Var* var = getVarOrExit(stack, lhs->token);
+                if (var->type != exp->exp_node->result){
+                    printf("Error: assignment type is not the same as the variable type\n");
+                    exit(1);
+                }
+            }
+
+            child->token = "#assignment_st-DONE";
+            return;
+        }else if(strcmp(child->token,"#var_string_opt")==0){
+            node* index = child->children[2];
+            getExpType(index->exp_node,stack);
+            if (index->exp_node->result != INT_T){
+                printf("Error: index of string must be of type INT\n");
+                exit(1);
+            }
+            child->token = "#var_string_opt-DONE";
             return;
         }
     }

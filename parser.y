@@ -15,8 +15,8 @@
     struct Scope* global_scope = NULL;
 %}
 
-
 %token ARGS TRUE_ FALSE_ VOID NULL_ IF ELSE FOR WHILE DO FUNC RETURN INT INT_P CHAR CHAR_P REAL REAL_P BOOL VAR STRING EQEQ SMALL_EQ BIG_EQ NOT_EQ OR AND COMMENT ID DIGITS_VALUE HEX_VALUE REAL_VALUE STRING_VALUE CHAR_VALUE
+
 
 %left EQEQ NOT_EQ '<' '>' SMALL_EQ BIG_EQ  
 %left OR AND
@@ -141,7 +141,7 @@ func_or_prod:
 
 return_st:
         RETURN exp ';' {
-            $$ = mknode("#",(struct node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});
+            $$ = mknode("#ret_st",(struct node*[]){mknode1("(RET "),$2,mknode1(")"),nl(),NULL});
             $$->use_scope = newScope();
             addVarArrToScope($2->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
@@ -187,7 +187,7 @@ block: comment_st code vars statements{
         ;
 
 comment_st:
-        COMMENT {$$ = mknode1("#comment");} comment_st
+        COMMENT comment_st {$$ = mknode1("#comment");}
         | {$$=mknode1("#");}
         ;
 
@@ -406,7 +406,7 @@ for_st:
 assignment_st:
         lhs '=' exp {
             struct node* expTemp = mknode("",(struct node*[]){$3,NULL});
-            $$ = mknode("#",(struct node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
+            $$ = mknode("#assignment_st",(struct node*[]){mknode1("(="),$1,nl(),expTemp,mknode1(")"),nl(),NULL});
             $$->use_scope = newScope();
             addVarArrToScope($1->use_scope->varArr, $$->use_scope);
             addVarArrToScope($3->use_scope->varArr, $$->use_scope);
@@ -421,12 +421,12 @@ lhs:
             appendVarArr($$->use_scope->varArr, newVar_($1->token));
         }
         |ID '[' exp ']' {
-            $$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});
+            $$ = mknode("#stringAtIndex",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});
             $$->use_scope = newScope();
             appendVarArr($$->use_scope->varArr, newVar_($1->token));
         }
         |'*' ID {
-            $$ = mknode("#",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});
+            $$ = mknode("#derefId",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});
             $$->use_scope = newScope();
             appendVarArr($$->use_scope->varArr, newVar_($2->token));
         }
@@ -481,7 +481,7 @@ var_string_list:
         ;
 
 var_string_opt:
-        ID '[' exp ']' {$$ = mknode("#",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
+        ID '[' exp ']' {$$ = mknode("#var_string_opt",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});}
         |assignment_st {$$ = mknode("#ass_in_str",(struct node*[]){$1,NULL});}
         ;
 

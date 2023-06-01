@@ -39,7 +39,7 @@ int print = 0;
 "+"         { if(print) printf("+\n"); return yytext[0]; }
 
 "/*"([^*]*|(\*+[^/]))*"*/"  {
-    // yylval = mknode1(yytext);
+    // yylval = mknode1("comment");
     if(print) printf("COMMENT\n");
     // return COMMENT;
     }

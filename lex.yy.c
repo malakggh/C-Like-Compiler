@@ -962,7 +962,7 @@ case 29:
 YY_RULE_SETUP
 #line 41 "scanner.l"
 {
-    // yylval = mknode1(yytext);
+    // yylval = mknode1("comment");
     if(print) printf("COMMENT\n");
     // return COMMENT;
     }

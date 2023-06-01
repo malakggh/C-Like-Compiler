@@ -36,7 +36,7 @@ function main(): void{
 }
 function hello(arg->DD2: real): char{
     var i1xpromax2: real;
-    return 2.0;
+    return 'a';
 }
 
 function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
@@ -55,12 +55,12 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
             }
             
             
-            if (x==5)
+            if (x==1+5)
                 ioi = 2;
             {
                 var z,b,a,q,c,ret_z,ret_a: int;
                 if (x==5)
-                   return ret_a + ret_B(xoo2(),xoo(),ret_z,xoo());
+                   return ret_a + ret_B(xoo2(),xoo(),ret_z,xoo()) + 1.0;
                 {
                     var ququ : real;
                     if (x==2) {{x = x - (y) * z / 3;}}
@@ -75,14 +75,14 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                     if (x==2) x = x + 2;
                 }*/
             }
-            return ret_b + ret_B(ret_z3,xoo());
+            return 1.0;
         }
     var abc,vb,ret_d,ret_c,l,m,i : int;
     var k: char;
     var x,j: bool;
     if (!(k == hello())||(x!=false)&&(l+m<i))
-        return ret_c;
-    return ret_d + hello(2);
+        return k;
+    return k;
 }
 
 function hello4(arg->DD2: real): real{
