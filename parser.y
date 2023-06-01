@@ -529,7 +529,7 @@ exp:
             $$->exp_node->leaf_type = ID_LEAF;
         }											
         | func_call {
-            $$ = mknode("#",(struct node*[]){$1,NULL});
+            $$ = mknode("#func_call_as_exp",(struct node*[]){$1,NULL});
             $$->use_scope = newScope();
             addVarArrToScope($1->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($1->use_scope->funcsArr, $$->use_scope);

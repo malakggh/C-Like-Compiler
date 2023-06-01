@@ -1967,7 +1967,7 @@ yyreduce:
 #line 407 "parser.y"
                     {
             struct node* expTemp = mknode("",(struct node*[]){yyvsp[0],NULL});
-            yyval = mknode("#",(struct node*[]){mknode1("(="),yyvsp[-2],nl(),expTemp,mknode1(")"),nl(),NULL});
+            yyval = mknode("#assignment_st",(struct node*[]){mknode1("(="),yyvsp[-2],nl(),expTemp,mknode1(")"),nl(),NULL});
             yyval->use_scope = newScope();
             addVarArrToScope(yyvsp[-2]->use_scope->varArr, yyval->use_scope);
             addVarArrToScope(yyvsp[0]->use_scope->varArr, yyval->use_scope);
@@ -1989,7 +1989,7 @@ yyreduce:
   case 49: /* lhs: ID '[' exp ']'  */
 #line 423 "parser.y"
                         {
-            yyval = mknode("#",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});
+            yyval = mknode("#stringAtIndex",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});
             yyval->use_scope = newScope();
             appendVarArr(yyval->use_scope->varArr, newVar_(yyvsp[-3]->token));
         }
@@ -1999,7 +1999,7 @@ yyreduce:
   case 50: /* lhs: '*' ID  */
 #line 428 "parser.y"
                 {
-            yyval = mknode("#",(struct node*[]){mknode1("*"),mknode1(yyvsp[0]->token),NULL});
+            yyval = mknode("#derefId",(struct node*[]){mknode1("*"),mknode1(yyvsp[0]->token),NULL});
             yyval->use_scope = newScope();
             appendVarArr(yyval->use_scope->varArr, newVar_(yyvsp[0]->token));
         }
@@ -2121,7 +2121,7 @@ yyreduce:
 
   case 67: /* var_string_opt: ID '[' exp ']'  */
 #line 484 "parser.y"
-                       {yyval = mknode("#",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});}
+                       {yyval = mknode("#var_string_opt",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});}
 #line 2126 "y.tab.c"
     break;
 
@@ -2259,7 +2259,7 @@ yyreduce:
   case 87: /* exp: func_call  */
 #line 531 "parser.y"
                     {
-            yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
+            yyval = mknode("#func_call_as_exp",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = newScope();
             addVarArrToScope(yyvsp[0]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);

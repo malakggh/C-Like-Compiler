@@ -45,7 +45,10 @@ printing tree
                                 (FUNC
                                     ret_B
                                     (ARGS
-                                        NONE
+                                        (a1,REAL)
+                                        (a2,CHAR)
+                                        (a3,INT)
+                                        (a4,CHAR)
                                     )
                                     (RET INT)
                                     (BODY-DONE
@@ -65,7 +68,7 @@ printing tree
                                 y
                                 ret_b
                                 ret_z3
-                                Type: REAL
+                                Type: INT
                             )
                             (IF-DONE
                                 ( ==
@@ -75,14 +78,14 @@ printing tree
                                 (BLOCK-DONE
                                     (FOR
                                         (FOR-INIT-DONE
-                                            (=-DONEi1
+                                            (=i1
                                                 0)
                                             ( <
                                                 i1
                                                 10
                                             )
                                         
-                                            (=-DONEi3
+                                            (=i3
                                                 ( +
                                                     i
                                                     1
@@ -94,13 +97,14 @@ printing tree
                                                 (VAR 
                                                     x
                                                     a
+                                                    y
                                                     Type: INT
                                                 )
                                                 (VAR 
                                                     ioi
                                                     Type: BOOL
                                                 )
-                                                (=-DONEx
+                                                (=x
                                                     ( +
                                                         2
                                                         a
@@ -122,7 +126,7 @@ printing tree
                                     )
                                 
                                 )
-                                (=-DONEioi
+                                (=ioi
                                     2)
                             
                             )
@@ -145,7 +149,7 @@ printing tree
                                     (RET ( +
         ( +
             ret_a
-            function call ret_B(function call xoo2(),function call xoo(),ret_z,function call xoo())
+            function call -DONEret_B(function call -DONExoo2(23.0),function call -DONExoo(1,2,FALSE),ret_z,function call -DONExoo(1,z,FALSE))
         )
     
         1.0
@@ -165,7 +169,7 @@ printing tree
                                         )
                                         (BLOCK-DONE
                                             (BLOCK-DONE
-                                                (=-DONEx
+                                                (=x
                                                     ( -
                                                         x
                                                         ( /
@@ -189,16 +193,6 @@ printing tree
                                         ququ_bro2
                                         Type: REAL
                                     )
-                                    (=-DONEb
-                                        function call ret_B(( +
-        ( +
-            a
-            q
-        )
-    
-        2
-    )
-    ,b,c))
                                 )
                             )
                             (RET 1.0)
@@ -229,7 +223,7 @@ printing tree
                             !
                             ( ==
                                 k
-                                function call hello()
+                                function call -DONEhello(2.5)
                             )
                         
                             ( !=

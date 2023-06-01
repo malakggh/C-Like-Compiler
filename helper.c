@@ -696,7 +696,7 @@ void getEachExpression(node* tree, ScopeStack* stack){
             child->token = "(FOR-INIT-DONE";
             return;
         }else if(strcmp(child->token,"#assignment_st")==0){
-            node* exp = child->children[4]->children[0];
+            node* exp = child->children[3]->children[0];
             node* lhs = child->children[1];
             getExpType(exp->exp_node,stack);
             // part 14 is here
@@ -743,10 +743,47 @@ void getEachExpression(node* tree, ScopeStack* stack){
             }
             child->token = "#var_string_opt-DONE";
             return;
+        }else if(strcmp(child->token,"function call ")==0){
+            char* functionName = tree->children[i+1]->token;
+            Function* func = searchFunctionInStack(stack, functionName);
+            if (func == NULL){
+                printf("Error: function (%s) is used before being defined\n", functionName);
+                exit(1);
+            }
+            node* exp_list = tree->children[i+3];
+            VarArr* args = newVarArr();
+            check_function_args(exp_list,stack,args);
+            int numOfPassedArgs = args->len;
+            int numOfFuncArgs = func->varArr->len;
+            if (numOfPassedArgs != numOfFuncArgs){
+                printf("Error: function (%s) expected %d arguments but %d were passed\n", functionName, numOfFuncArgs, numOfPassedArgs);
+                exit(1);
+            }
+            for(int i=0; i<numOfPassedArgs; i++){
+                if (args->vars[i]->type != func->varArr->vars[i]->type){
+                    printf("Error: function (%s) expected argument at index %d \n\tto be of type %s but %s is passed\n", functionName, i, getTypeAsString(func->varArr->vars[i]->type), getTypeAsString(args->vars[i]->type));
+                    exit(1);
+                }
+            }
+            child->token = "function call -DONE";
         }
     }
 }
 
+void check_function_args(node* tree, ScopeStack* stack, VarArr* args){
+    if (tree == NULL) return;
+    if (tree->children == NULL) return; 
+    if (strcmp(tree->token,"#exp_list")==0){     
+        node* exp = tree->children[0];
+        getExpType(exp->exp_node,stack);
+        appendVarArr(args, newVar("",exp->exp_node->result));
+    }
+    for (int i = 0; i < tree->child_num; i++) {
+        if (!(strcmp(tree->children[i]->token,"#func_call_as_exp")==0))
+            check_function_args(tree->children[i],stack,args);
+    }
+    return;
+}
 
 enum Type addressOf(enum Type type){
     if (type == INT_T) return INT_P_T;

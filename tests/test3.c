@@ -41,14 +41,14 @@ function hello(arg->DD2: real): char{
 
 function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
         function xoo2(arg->DD2: real): real{
-            function ret_B():int{
+            function ret_B(arg->a1:real;arg->a2:char;arg->a3:int;arg->a4:char):int{
                 return 1;
             }
             var x,dx: int;
-            var i1,i3,i,ioi,y,ret_b,ret_z3: real;
+            var i1,i3,i,ioi,y,ret_b,ret_z3: int;
             if (dx==5){
                 for(i1=0;i1<10;i3=i+1){
-                        var x,a : int;
+                        var x,a,y : int;
                         var ioi: bool;
                         x = 2 + a;
                     }      
@@ -60,14 +60,13 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
             {
                 var z,b,a,q,c,ret_z,ret_a: int;
                 if (x==5)
-                   return ret_a + ret_B(xoo2(),xoo(),ret_z,xoo()) + 1.0;
+                   return ret_a + ret_B(xoo2(23.0),xoo(1,2,false),ret_z,xoo(1,z,false)) + 1.0;
                 {
                     var ququ : real;
                     if (x==2) {{x = x - (y) * z / 3;}}
                 }
                 {
                     var ququ_bro2 : real;
-                    b = ret_B(a+q+2,b,c);
                 }
                 /*
                 {
@@ -80,7 +79,7 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
     var abc,vb,ret_d,ret_c,l,m,i : int;
     var k: char;
     var x,j: bool;
-    if (!(k == hello())||(x!=false)&&(l+m<i))
+    if (!(k == hello(2.5))||(x!=false)&&(l+m<i))
         return k;
     return k;
 }

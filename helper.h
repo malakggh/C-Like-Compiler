@@ -182,3 +182,9 @@ void getEachExpression(node* tree, ScopeStack* stack);
 void getExpType(expressionNode* expressionNode, ScopeStack* stack);
 
 Var* getVarOrExit(ScopeStack* stack, char* name);
+
+enum Type addressOf(enum Type type);
+
+enum Type dereferenceOf(enum Type type);
+
+void check_function_args(node* tree, ScopeStack* stack, VarArr* args);
