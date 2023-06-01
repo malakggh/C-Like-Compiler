@@ -605,3 +605,8 @@ int test() {
 
     return 0;
 }
+
+expressionNode *mkExpNode(char *name, expressionNode *left, expressionNode *right)
+{
+    return nullptr;
+}

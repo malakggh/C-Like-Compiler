@@ -34,7 +34,7 @@ function koo(arg->a,b,c,d : int;arg->Asdx:bool): char{
 function main(): void{
     var i1xpromax1: real;
 }
-function hello(arg->DD2: real): real{
+function hello(arg->DD2: real): char{
     var i1xpromax2: real;
     return 2.0;
 }
@@ -68,7 +68,6 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
                 {
                     var ququ_bro2 : real;
                     b = ret_B(a+q+2,b,c);
-                    a = xoo2(n,m);
                 }
                 /*
                 {
@@ -78,8 +77,10 @@ function xoo(arg->AA2,BB2 : int;arg->Asx2:bool): char{
             }
             return ret_b + ret_B(ret_z3,xoo());
         }
-    var abc,x,vb,ret_d,ret_c : int;
-    if (x==5-vb)
+    var abc,vb,ret_d,ret_c,l,m,i : int;
+    var k: char;
+    var x,j: bool;
+    if (!(k == hello())||(x!=false)&&(l+m<i))
         return ret_c;
     return ret_d + hello(2);
 }

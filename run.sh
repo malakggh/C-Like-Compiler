@@ -12,5 +12,5 @@ cc -o out y.tab.c -ll -Ly
 # lex scanner.l
 # yacc -d parser.y
 # cc -g -o out y.tab.c -ll -Ly
-# ./out<tests/globtest.c > output_part1.r
+# ./out<tests/test3.c > output_part1.r
 # gdb ./out

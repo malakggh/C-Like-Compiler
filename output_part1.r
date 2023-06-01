@@ -1,141 +1,273 @@
-semantics test for function: main
-################# Start of Scope 1 #####################
-Declartions: 
-	Return Type: VOID
-	---- Variables ----
-	varArr: [i1xpromax1-REAL]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 1 #######################
-semantics test for function: hello
-################# Start of Scope 1 #####################
-Declartions: 
-	Return Type: REAL
-	---- Variables ----
-	varArr: [DD2-REAL, i1xpromax2-REAL]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 1 #######################
-semantics test for function: xoo
-################# Start of Scope 3 #####################
-Declartions: 
-	Return Type: INT
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 3 #######################
-################# Start of Scope 4 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: [x-INT, a-INT, ioi-BOOL]
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [x-NONE, a-NONE]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 4 #######################
-################# Start of Scope 3 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [i1-NONE, i1-NONE, i3-NONE, i-NONE]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 3 #######################
-################# Start of Scope 3 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [ioi-NONE]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 3 #######################
-################# Start of Scope 4 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [ret_a-NONE, ret_z-NONE]
-	---- Functions ----
-	funcsArr: [{xoo2, varArr: [], NONE}, {xoo, varArr: [], NONE}, {xoo, varArr: [], NONE}, {ret_B, varArr: [], NONE}]
-################# End of Scope 4 #######################
-################# Start of Scope 6 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [x-NONE, x-NONE, y-NONE, z-NONE]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 6 #######################
-################# Start of Scope 5 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: []
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 5 #######################
-################# Start of Scope 4 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: [ququ-REAL]
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [x-NONE]
-	---- Functions ----
-	funcsArr: []
-################# End of Scope 4 #######################
-################# Start of Scope 4 #####################
-Declartions: 
-	Return Type: NONE
-	---- Variables ----
-	varArr: [ququ_bro2-REAL]
-	---- Functions ----
-	funcsArr: []
-
-
-Use Scope: 
-	---- Variables ----
-	varArr: [b-NONE, a-NONE, q-NONE, b-NONE, c-NONE, a-NONE, n-NONE, m-NONE]
-	---- Functions ----
-	funcsArr: [{ret_B, varArr: [], NONE}, {xoo2, varArr: [], NONE}]
-################# End of Scope 4 #######################
-Error: variable (n) is used before being defined
+printing tree
+    (CODE
+        (FUNC
+            main
+            (ARGS
+                NONE
+            )
+            (RET VOID)
+            (BODY-DONE
+                (VAR 
+                    i1xpromax1
+                    Type: REAL
+                )
+            )
+        )
+        (FUNC
+            hello
+            (ARGS
+                (DD2,REAL)
+            )
+            (RET CHAR)
+            (BODY-DONE
+                (VAR 
+                    i1xpromax2
+                    Type: REAL
+                )
+                (RET 2.0)
+            )
+        )
+        (FUNC
+            xoo
+            (ARGS
+                (AA2,BB2,INT)
+                (Asx2,BOOL)
+            )
+            (RET CHAR)
+            (BODY-DONE
+                    (FUNC
+                        xoo2
+                        (ARGS
+                            (DD2,REAL)
+                        )
+                        (RET REAL)
+                        (BODY-DONE
+                                (FUNC
+                                    ret_B
+                                    (ARGS
+                                        NONE
+                                    )
+                                    (RET INT)
+                                    (BODY-DONE
+                                        (RET 1)
+                                    )
+                                )
+                            (VAR 
+                                x
+                                dx
+                                Type: INT
+                            )
+                            (VAR 
+                                i1
+                                i3
+                                i
+                                ioi
+                                y
+                                ret_b
+                                ret_z3
+                                Type: REAL
+                            )
+                            (IF-DONE
+                                ( ==
+                                    dx
+                                    5
+                                )
+                                (BLOCK-DONE
+                                    (FOR
+                                        (FOR-INIT
+                                            (=i1
+                                                0)
+                                            ( <
+                                                i1
+                                                10
+                                            )
+                                        
+                                            (=i3
+                                                ( +
+                                                    i
+                                                    1
+                                                )
+                                            )
+                                        )
+                                        (FOR-BLOCK
+                                            (BLOCK-DONE
+                                                (VAR 
+                                                    x
+                                                    a
+                                                    Type: INT
+                                                )
+                                                (VAR 
+                                                    ioi
+                                                    Type: BOOL
+                                                )
+                                                (=x
+                                                    ( +
+                                                        2
+                                                        a
+                                                    )
+                                                )
+                                            )
+                                        
+                                        )
+                                    )
+                                )
+                            
+                            )
+                            (IF-DONE
+                                ( ==
+                                    x
+                                    5
+                                )
+                                (=ioi
+                                    2)
+                            
+                            )
+                            (BLOCK-DONE
+                                (VAR 
+                                    z
+                                    b
+                                    a
+                                    q
+                                    c
+                                    ret_z
+                                    ret_a
+                                    Type: INT
+                                )
+                                (IF-DONE
+                                    ( ==
+                                        x
+                                        5
+                                    )
+                                    (RET ( +
+        ret_a
+        function call ret_B(function call xoo2(),function call xoo(),ret_z,function call xoo())
+    )
+                                    )
+                                
+                                )
+                                (BLOCK-DONE
+                                    (VAR 
+                                        ququ
+                                        Type: REAL
+                                    )
+                                    (IF-DONE
+                                        ( ==
+                                            x
+                                            2
+                                        )
+                                        (BLOCK-DONE
+                                            (BLOCK-DONE
+                                                (=x
+                                                    ( -
+                                                        x
+                                                        ( /
+                                                            ( *
+                                                                y
+                                                                z
+                                                            )
+                                                        
+                                                            3
+                                                        )
+                                                    
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    
+                                    )
+                                )
+                                (BLOCK-DONE
+                                    (VAR 
+                                        ququ_bro2
+                                        Type: REAL
+                                    )
+                                    (=b
+                                        function call ret_B(( +
+        ( +
+            a
+            q
+        )
+    
+        2
+    )
+    ,b,c))
+                                )
+                            )
+                            (RET ( +
+        ret_b
+        function call ret_B(ret_z3,function call xoo())
+    )
+                            )
+                        )
+                    )
+                (VAR 
+                    abc
+                    vb
+                    ret_d
+                    ret_c
+                    l
+                    m
+                    i
+                    Type: INT
+                )
+                (VAR 
+                    k
+                    Type: CHAR
+                )
+                (VAR 
+                    x
+                    j
+                    Type: BOOL
+                )
+                (IF-DONE
+                    ( &&
+                        ( ||
+                            !
+                            ( ==
+                                k
+                                function call hello()
+                            )
+                        
+                            ( !=
+                                x
+                                FALSE
+                            )
+                        
+                        )
+                    
+                        ( <
+                            ( +
+                                l
+                                m
+                            )
+                        
+                            i
+                        )
+                    
+                    )
+                    (RET ret_c)
+                
+                )
+                (RET ( +
+        ret_d
+        function call hello(2)
+    )
+                )
+            )
+        )
+        (FUNC
+            hello4
+            (ARGS
+                (DD2,REAL)
+            )
+            (RET REAL)
+            (BODY-DONE
+                (VAR 
+                    i1xpromax
+                    Type: REAL
+                )
+                (RET 2.0)
+            )
+        )
+    )
+done printing tree

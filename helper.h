@@ -13,10 +13,13 @@ enum Type {
     REAL_T,
     CHAR_T,
     BOOL_T,
+
     INT_P_T,
     REAL_P_T,
     CHAR_P_T,
+    
     STRING_T,
+    NULL_T,
     NONE_T
 };
 
@@ -75,7 +78,28 @@ typedef struct node {
     Scope* scope;
     Scope* use_scope;
     Scope* pointer;
+    struct expressionNode* exp_node;
 } node;
+
+enum leafType {
+    NOT_LEAF,
+    ID_LEAF,
+    FUNC_CALL,
+    LEN_OF_STR,
+    ADDRESS_OF,
+    DEREFERENCE,
+    VALUE,
+};
+
+
+typedef struct expressionNode {
+    enum Type result;
+    char name[100];
+    struct node* left;
+    struct node* right;
+    enum leafType leaf_type;
+} expressionNode;
+
 #define YYSTYPE node* 
 // ##########################################################
 // FUNCS OF SEMANTICS
@@ -83,6 +107,7 @@ node* mknode(char* token, node** children);
 node* mknode1(char* token);
 node* nl(){return mknode1("\n");};
 node* expNode(char* token,node* first,node* second);
+expressionNode* mkExpNode(char* name,node* left,node* right);
 void printtree(node *tree, int shift);
 char* plusStr(char* str1,char* str2);
 char* shifts(int n);
@@ -149,6 +174,8 @@ void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack);
 
 void mainCheck(Scope* scopeOfFunc);
 
-void processScope(ScopeStack* stack);
+void processScope(ScopeStack* stack, node* tree);
 
-void checkFunctionReturnType_9(ScopeStack* stack);
+void getEachExpression(node* tree, ScopeStack* stack);
+
+void getExpType(expressionNode* expressionNode, ScopeStack* stack);

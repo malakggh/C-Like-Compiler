@@ -23,6 +23,7 @@ node* mknode(char* token, node** children) {
     newnode->scope = NULL;
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
+    newnode->exp_node = NULL;
     return newnode;
 }
 
@@ -37,6 +38,7 @@ node* mknode1(char* token) {
     newnode->scope = NULL;
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
+    newnode->exp_node = NULL;
     return newnode;
 }
 
@@ -51,6 +53,16 @@ node* expNode(char* token,node* first,node* second){
     addVarArrToScope(second->use_scope->varArr, temp->use_scope);
     addFunctionArrToScope(first->use_scope->funcsArr, temp->use_scope);
     addFunctionArrToScope(second->use_scope->funcsArr, temp->use_scope);
+    return temp;
+}
+
+expressionNode* mkExpNode(char* name,node* left,node* right){
+    expressionNode* temp = (expressionNode*)malloc(sizeof(expressionNode));
+    strcpy(temp->name,name);
+    temp->left = left;
+    temp->right = right;
+    temp->result = NONE_T;
+    temp->leaf_type = NOT_LEAF;
     return temp;
 }
 
@@ -531,24 +543,27 @@ void startSemanticCheck(node* tree,ScopeStack* stack){
         if (strcmp(child->token,"(BODY")==0){
             if(printCheck) printScopeStack(stack);
             if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            processScope(stack);
+            processScope(stack,tree->children[i+2]);
             if(printCheck) printScope(topScope(stack), stack->len-1);
             popScope(stack);
+            child->token = "(BODY-DONE";
         }
         if (strcmp(child->token,"(BLOCK")==0){
             if(printCheck) printScopeStack(stack);
             if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-            processScope(stack);
+            processScope(stack,tree->children[i+2]->children[0]);
             if(printCheck) printScope(topScope(stack), stack->len-1);
             popScope(stack);
+            child->token = "(BLOCK-DONE";
         }
         if (strcmp(child->token,"#statement_block")==0 && 
             !(strcmp(child->children[0]->token,"#new_block")==0)){
                 if(printCheck) printScopeStack(stack);
                 if(printCheck) printf("-*-*-*-*processing this scope-*-*-*-*\n");
-                processScope(stack);
+                processScope(stack,child->children[0]);
                 if(printCheck) printScope(topScope(stack), stack->len-1);
                 popScope(stack);
+                child->token = "#statement_block-DONE";
         }
     }
 }
@@ -558,7 +573,7 @@ void semantic_for_each_function(node* tree,ScopeStack* stack, Scope* global_scop
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"#global_scope")==0){
-            printf("semantics test for function: %s\n",child->children[0]->children[2]->children[0]->token);
+            // printf("semantics test for function: %s\n",child->children[0]->children[2]->children[0]->token);
             addFunctionArrToScope(child->children[0]->pointer->funcsArr, global_scope);
             startSemanticCheck(child->children[0],stack);
             break;
@@ -603,15 +618,202 @@ void mainCheck(Scope* scopeOfFunc){
 
 }
 
-void processScope(ScopeStack* stack){
-    printScope(topScope(stack), stack->len-1);
+void processScope(ScopeStack* stack, node* tree){
     checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
+    // printScope(topScope(stack), stack->len-1);
+    getEachExpression(tree,stack);
 
 }
 
-// void checkFunctionReturnType_9(ScopeStack* stack){
+void getEachExpression(node* tree, ScopeStack* stack){
+    if (tree == NULL) return;
+    for (int i = 0; i < tree->child_num; i++) {
+        getEachExpression(tree->children[i],stack);
+    }
+    for (int i = 0; i < tree->child_num; i++) {
+        node* child = tree->children[i];
+        if (strcmp(child->token,"(IF")==0){
+            node* exp = tree->children[i+2]->children[0];
+            // printf("printing the expression of if\n");
+            // printtree(exp,1);
+            getExpType(exp->exp_node,stack);
+            child->token = "(IF-DONE";
+            return;
+        }
+    }
+}
 
-// }
+
+enum Type addressOf(enum Type type){
+    if (type == INT_T) return INT_P_T;
+    if (type == REAL_T) return REAL_P_T;
+    if (type == CHAR_T) return CHAR_P_T;
+    printf("Error: operator & can only be used on INT, REAL, CHAR\n");
+    exit(1);
+}
+
+enum Type dereferenceOf(enum Type type){
+    if (type == INT_P_T) return INT_T;
+    if (type == REAL_P_T) return REAL_T;
+    if (type == CHAR_P_T) return CHAR_T;
+    printf("Error: operator * can only be used on INT*, REAL*, CHAR*\n");
+    exit(1);
+}
+
+Var* getVarOrExit(ScopeStack* stack, char* name){
+    Var* var = searchVarInStack(stack, name);
+    if (var == NULL){
+        printf("Error: variable (%s) is used before being defined\n", name);
+        exit(1);
+    }
+    return var;
+}
+
+void checkUpdateArithmeticOperation(expressionNode* expressionNode, char operator){
+    if (expressionNode->left->exp_node->result == INT_T && expressionNode->right->exp_node->result == INT_T){
+        expressionNode->result = INT_T;
+    }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == REAL_T){
+        expressionNode->result = REAL_T;
+    }else if (expressionNode->left->exp_node->result == INT_T && expressionNode->right->exp_node->result == REAL_T){
+        expressionNode->result = REAL_T;
+    }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == INT_T){
+        expressionNode->result = REAL_T;
+    }else{
+        printf("Error: operator %c can only be used on INT, REAL\n", operator);
+        exit(1);
+    }
+}
+
+// for bool operations the operands must be of bool type and the result is always bool
+void checkUpdateBoolOperation(expressionNode* expressionNode, char* operator){
+    if (expressionNode->left->exp_node->result == BOOL_T && expressionNode->right->exp_node->result == BOOL_T){
+        expressionNode->result = BOOL_T;
+    }else{
+        printf("Error: operator %s can only be used on BOOL\n", operator);
+        exit(1);
+    }
+}
+
+// for comparison operations the operands must be int or real and the result is always bool
+void checkUpdateComparisonOperation(expressionNode* expressionNode, char* operator){
+    if (expressionNode->left->exp_node->result == INT_T && expressionNode->right->exp_node->result == INT_T){
+        expressionNode->result = BOOL_T;
+    }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == REAL_T){
+        expressionNode->result = BOOL_T;
+    }else if (expressionNode->left->exp_node->result == INT_T && expressionNode->right->exp_node->result == REAL_T){
+        expressionNode->result = BOOL_T;
+    }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == INT_T){
+        expressionNode->result = BOOL_T;
+    }else{
+        printf("Error: operator %s can only be used on INT, REAL\n", operator);
+        exit(1);
+    }
+}
+
+// for == and != the two operands muse be of the same type of (int, real, char, bool, int*, real*, char*) and the result is always bool
+void checkUpdateEqualityOperation(expressionNode* expressionNode, char* operator){
+    if (expressionNode->left->exp_node->result != expressionNode->right->exp_node->result){
+        printf("Error: operator %s can only be used on operands of the same type\n", operator);
+        exit(1);
+    }
+    enum Type type = expressionNode->left->exp_node->result;
+    if (type == INT_T || type == REAL_T || type == CHAR_T || type == BOOL_T || type == INT_P_T || type == REAL_P_T || type == CHAR_P_T){
+        expressionNode->result = BOOL_T;
+    }else{
+        printf("Error: operator %s can only be used on INT, REAL, CHAR, BOOL, INT*, REAL*, CHAR*\n", operator);
+        exit(1);
+    }
+}
+
+
+void getExpType(expressionNode* expressionNode, ScopeStack* stack){
+    if (expressionNode->leaf_type != NOT_LEAF) {
+        // we are dealing with leaf
+        if (expressionNode->leaf_type == ID_LEAF){
+            Var* var = getVarOrExit(stack, expressionNode->name);
+            expressionNode->result = var->type;
+        }else if(expressionNode->leaf_type == FUNC_CALL){
+            Function* func = searchFunctionInStack(stack, expressionNode->name);
+            if (func == NULL){
+                printf("Error: function (%s) is used before being defined\n", expressionNode->name);
+                exit(1);
+            }
+            expressionNode->result = func->returnType;
+        }else if(expressionNode->leaf_type == LEN_OF_STR){
+            Var* var = getVarOrExit(stack, expressionNode->name);
+            if (var->type != STRING_T){
+                printf("Error: len function can only be used on strings\n");
+                exit(1);
+            }
+            expressionNode->result = INT_T;
+
+        }else if(expressionNode->leaf_type == ADDRESS_OF){
+            Var* var = getVarOrExit(stack, expressionNode->name);
+            expressionNode->result = addressOf(var->type);
+        }
+        else if(expressionNode->leaf_type == DEREFERENCE){
+            Var* var = getVarOrExit(stack, expressionNode->name);
+            expressionNode->result = dereferenceOf(var->type);
+        }
+        return;
+    }
+    if (expressionNode->left != NULL)
+        getExpType(expressionNode->left->exp_node,stack);
+    if (expressionNode->right != NULL)
+        getExpType(expressionNode->right->exp_node,stack);
+    if (strcmp(expressionNode->name,"+")==0){
+        checkUpdateArithmeticOperation(expressionNode, '+');
+    }else if (strcmp(expressionNode->name,"-")==0){
+        checkUpdateArithmeticOperation(expressionNode, '-');
+    }else if (strcmp(expressionNode->name,"*")==0){
+        checkUpdateArithmeticOperation(expressionNode, '*');
+    }else if (strcmp(expressionNode->name,"/")==0){
+        checkUpdateArithmeticOperation(expressionNode, '/');
+    }else if (strcmp(expressionNode->name, "&&")==0){
+        checkUpdateBoolOperation(expressionNode, "&&");
+    }else if (strcmp(expressionNode->name, "||")==0){
+        checkUpdateBoolOperation(expressionNode, "||");
+    }else if (strcmp(expressionNode->name, "<=")==0){
+        checkUpdateComparisonOperation(expressionNode, "<=");
+    }else if (strcmp(expressionNode->name, ">=")==0){
+        checkUpdateComparisonOperation(expressionNode, ">=");
+    }else if (strcmp(expressionNode->name, "<")==0){
+        checkUpdateComparisonOperation(expressionNode, "<");
+    }else if (strcmp(expressionNode->name, ">")==0){
+        checkUpdateComparisonOperation(expressionNode, ">");
+    }else if (strcmp(expressionNode->name, "==")==0){
+        checkUpdateEqualityOperation(expressionNode, "==");
+    }else if (strcmp(expressionNode->name, "!=")==0){
+        checkUpdateEqualityOperation(expressionNode, "!=");
+    }else if (strcmp(expressionNode->name, "!")==0){
+        if (expressionNode->left->exp_node->result != BOOL_T){
+            printf("Error: operator ! can only be used on BOOL\n");
+            exit(1);
+        }
+        expressionNode->result = BOOL_T;
+    }else if (strcmp(expressionNode->name, "addressOfChar")==0){
+        if (expressionNode->left->exp_node->result != STRING_T){
+            printf("Error: operator [] can only be used on STRING\n");
+            exit(1);
+        }
+        if (expressionNode->right->exp_node->result != INT_T){
+            printf("Error: operator [] can only be used with INT\n");
+            exit(1);
+        }
+        expressionNode->result = CHAR_P_T;
+    }else if (strcmp(expressionNode->name, "charAt")==0){
+        if (expressionNode->left->exp_node->result != STRING_T){
+            printf("Error: operator [] can only be used on STRING\n");
+            exit(1);
+        }
+        if (expressionNode->right->exp_node->result != INT_T){
+            printf("Error: operator [] can only be used with INT\n");
+            exit(1);
+        }
+        expressionNode->result = CHAR_T;
+    }
+
+}
 
 void checkDuplicateVarOrFuncInScope(Scope* scope){
     if (scope == NULL) return;
