@@ -820,7 +820,7 @@ void checkUpdateArithmeticOperation(expressionNode* expressionNode, char operato
     }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == INT_T){
         expressionNode->result = REAL_T;
     }else{
-        printf("Error: operator %c can only be used on INT, REAL\n", operator);
+        printf("Error: operator '%c' expects operands of type INT, INT or REAL, REAL or INT, REAL or REAL, INT \n\tbut got %s, %s\n", operator, getTypeAsString(expressionNode->left->exp_node->result), getTypeAsString(expressionNode->right->exp_node->result));
         exit(1);
     }
 }
@@ -830,7 +830,7 @@ void checkUpdateBoolOperation(expressionNode* expressionNode, char* operator){
     if (expressionNode->left->exp_node->result == BOOL_T && expressionNode->right->exp_node->result == BOOL_T){
         expressionNode->result = BOOL_T;
     }else{
-        printf("Error: operator %s can only be used on BOOL\n", operator);
+        printf("Error: operator %s expects operands of type BOOL but got %s, %s\n", operator, getTypeAsString(expressionNode->left->exp_node->result), getTypeAsString(expressionNode->right->exp_node->result));
         exit(1);
     }
 }
@@ -846,7 +846,7 @@ void checkUpdateComparisonOperation(expressionNode* expressionNode, char* operat
     }else if (expressionNode->left->exp_node->result == REAL_T && expressionNode->right->exp_node->result == INT_T){
         expressionNode->result = BOOL_T;
     }else{
-        printf("Error: operator %s can only be used on INT, REAL\n", operator);
+        printf("Error: operator %s expects operands of type INT, REAL but got %s, %s\n", operator, getTypeAsString(expressionNode->left->exp_node->result), getTypeAsString(expressionNode->right->exp_node->result));
         exit(1);
     }
 }
@@ -861,7 +861,7 @@ void checkUpdateEqualityOperation(expressionNode* expressionNode, char* operator
     if (type == INT_T || type == REAL_T || type == CHAR_T || type == BOOL_T || type == INT_P_T || type == REAL_P_T || type == CHAR_P_T){
         expressionNode->result = BOOL_T;
     }else{
-        printf("Error: operator %s can only be used on INT, REAL, CHAR, BOOL, INT*, REAL*, CHAR*\n", operator);
+        printf("Error: operator %s expects operands of type INT, REAL, CHAR, BOOL, INT*, REAL*, CHAR* but got %s, %s\n", operator, getTypeAsString(expressionNode->left->exp_node->result), getTypeAsString(expressionNode->right->exp_node->result));
         exit(1);
     }
 }
@@ -892,10 +892,10 @@ void getExpType(expressionNode* expressionNode, ScopeStack* stack){
             Var* var = getVarOrExit(stack, expressionNode->name);
             expressionNode->result = addressOf(var->type);
         }
-        else if(expressionNode->leaf_type == DEREFERENCE){
-            Var* var = getVarOrExit(stack, expressionNode->name);
-            expressionNode->result = dereferenceOf(var->type);
-        }
+        // else if(expressionNode->leaf_type == DEREFERENCE){
+        //     Var* var = getVarOrExit(stack, expressionNode->name);
+        //     expressionNode->result = dereferenceOf(var->type);
+        // }
         return;
     }
     if (expressionNode->left != NULL)
@@ -952,7 +952,9 @@ void getExpType(expressionNode* expressionNode, ScopeStack* stack){
             exit(1);
         }
         expressionNode->result = CHAR_T;
-    }
+     }else if (strcmp(expressionNode->name, "dereference")==0){
+        expressionNode->result = dereferenceOf(expressionNode->left->exp_node->result);
+     }
 
 }
 

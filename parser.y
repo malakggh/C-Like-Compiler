@@ -18,8 +18,9 @@
 %token ARGS TRUE_ FALSE_ VOID NULL_ IF ELSE FOR WHILE DO FUNC RETURN INT INT_P CHAR CHAR_P REAL REAL_P BOOL VAR STRING EQEQ SMALL_EQ BIG_EQ NOT_EQ OR AND COMMENT ID DIGITS_VALUE HEX_VALUE REAL_VALUE STRING_VALUE CHAR_VALUE
 
 
+%left OR
+%left AND
 %left EQEQ NOT_EQ '<' '>' SMALL_EQ BIG_EQ  
-%left OR AND
 %left '+' '-'
 %left '*' '/'
 %left ';' ','
@@ -578,12 +579,12 @@ exp:
 
             $$->exp_node = mkExpNode("charAt",idNode,$3);
         }
-        | '*' ID {
-            $$ = mknode("#",(struct node*[]){mknode1("dereference("),mknode1($2->token),mknode1(")"),NULL});
+        | '*' exp {
+            $$ = mknode("#",(struct node*[]){mknode1("dereference("),$2,mknode1(")"),NULL});
             $$->use_scope = newScope();
-            appendVarArr($$->use_scope->varArr, newVar_($2->token));
-            $$->exp_node = mkExpNode($2->token,NULL,NULL);
-            $$->exp_node->leaf_type = DEREFERENCE;
+            addVarArrToScope($2->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
+            $$->exp_node = mkExpNode("dereference",$2,NULL);
         }
         | value {
             $$ = mknode("#",(struct node*[]){$1,NULL});

@@ -87,7 +87,6 @@ enum leafType {
     FUNC_CALL,
     LEN_OF_STR,
     ADDRESS_OF,
-    DEREFERENCE,
     VALUE,
 };
 

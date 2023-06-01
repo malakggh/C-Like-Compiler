@@ -38,11 +38,25 @@ int print = 0;
 "&&"        { if(print) printf("AND\n"); return AND; }
 "+"         { if(print) printf("+\n"); return yytext[0]; }
 
-"/*"([^*]*|(\*+[^/]))*"*/"  {
-    // yylval = mknode1("comment");
-    if(print) printf("COMMENT\n");
-    // return COMMENT;
-    }
+
+"/*"   { 
+        //  ignore everything until closing comment appears 
+        // and when \n appears increase yylineno
+        int c;
+        while((c = input()) != 0){
+            if(c == '\n'){
+                yylineno++;
+            }
+            if(c == '*'){
+                c = input();
+                if(c == '/'){
+                    break;
+                }
+            }
+        }
+        //"/*"([^*]*|(\*+[^/]))*"*/"  {if(print) printf("COMMENT\n");}
+       }
+
 
 [a-zA-Z][a-zA-Z0-9_]*       {
     yylval = mknode1(yytext);
