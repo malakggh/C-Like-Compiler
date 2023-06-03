@@ -703,16 +703,16 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    36,    36,    40,    43,    47,    48,    53,   102,   144,
-     153,   154,   155,   156,   157,   158,   159,   160,   165,   166,
-     167,   173,   174,   177,   191,   192,   196,   197,   201,   202,
-     206,   210,   214,   218,   222,   226,   230,   236,   240,   257,
-     270,   287,   305,   312,   322,   348,   373,   408,   419,   424,
-     429,   437,   438,   439,   440,   441,   442,   443,   444,   448,
-     458,   470,   471,   475,   476,   480,   481,   485,   486,   490,
-     499,   500,   501,   506,   507,   508,   509,   510,   511,   512,
-     513,   514,   515,   516,   517,   518,   525,   532,   540,   547,
-     548,   555,   569,   582,   589,   596,   603
+       0,    36,    36,    40,    43,    47,    48,    53,   100,   140,
+     149,   150,   151,   152,   153,   154,   155,   156,   161,   162,
+     163,   169,   170,   173,   187,   188,   192,   193,   197,   198,
+     202,   206,   210,   214,   218,   222,   226,   232,   236,   253,
+     266,   282,   299,   306,   316,   342,   367,   402,   413,   418,
+     423,   431,   432,   433,   434,   435,   436,   437,   438,   442,
+     452,   464,   465,   469,   470,   474,   475,   479,   480,   484,
+     493,   494,   495,   500,   501,   502,   503,   504,   505,   506,
+     507,   508,   509,   510,   511,   512,   519,   526,   534,   541,
+     542,   549,   563,   576,   583,   590,   597
 };
 #endif
 
@@ -1503,8 +1503,6 @@ yyreduce:
             // extract the vars from the block
             addVarArrToScope(yyvsp[-2]->scope->varArr, block_scope);
             addFunctionArrToScope(yyvsp[-2]->scope->funcsArr, block_scope);
-            block_scope->nestedBlocks = howManyBlockIhaveInside(yyvsp[-2],0);
-            block_scope->nestedFuncs = howManyFunctionsIHaveInside(yyvsp[-2],0);
             block_scope->useScope = yyvsp[-2]->scope->useScope;
             addVarArrToScope(yyvsp[-1]->use_scope->varArr, block_scope->useScope);
             addFunctionArrToScope(yyvsp[-1]->use_scope->funcsArr, block_scope->useScope);
@@ -1515,11 +1513,11 @@ yyreduce:
             // printScopeStack(stack);
 
         }
-#line 1519 "y.tab.c"
+#line 1517 "y.tab.c"
     break;
 
   case 8: /* func_or_prod: FUNC ID '(' parameters ')' ':' VOID '{' block '}'  */
-#line 103 "parser.y"
+#line 101 "parser.y"
         {
             node* parTemp = mknode("",(struct node*[]){yyvsp[-6],NULL});
             node* blockTemp = mknode("",(struct node*[]){yyvsp[-1],NULL});
@@ -1550,109 +1548,107 @@ yyreduce:
             // extract the vars from the block
             addVarArrToScope(yyvsp[-1]->scope->varArr, block_scope);
             addFunctionArrToScope(yyvsp[-1]->scope->funcsArr, block_scope);
-            block_scope->nestedBlocks = howManyBlockIhaveInside(yyvsp[-1],0);
-            block_scope->nestedFuncs = howManyFunctionsIHaveInside(yyvsp[-1],0);
             block_scope->useScope = yyvsp[-1]->scope->useScope;
             //pushScope(stack, block_scope);    
             blockTemp->pointer = block_scope;
             checkDuplicateVarOrFuncInScope(block_scope);
         }
-#line 1561 "y.tab.c"
+#line 1557 "y.tab.c"
     break;
 
   case 9: /* return_st: RETURN exp ';'  */
-#line 144 "parser.y"
+#line 140 "parser.y"
                        {
             yyval = mknode("#ret_st",(struct node*[]){mknode1("(RET "),yyvsp[-1],mknode1(")"),nl(),NULL});
             yyval->use_scope = newScope();
             addVarArrToScope(yyvsp[-1]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[-1]->use_scope->funcsArr, yyval->use_scope);
         }
-#line 1572 "y.tab.c"
+#line 1568 "y.tab.c"
     break;
 
   case 10: /* type: INT  */
-#line 153 "parser.y"
+#line 149 "parser.y"
             {node* t = mknode1("INT"); t->type = INT_T; yyval = t;}
-#line 1578 "y.tab.c"
+#line 1574 "y.tab.c"
     break;
 
   case 11: /* type: REAL  */
-#line 154 "parser.y"
+#line 150 "parser.y"
               {node* t = mknode1("REAL"); t->type = REAL_T; yyval = t;}
-#line 1584 "y.tab.c"
+#line 1580 "y.tab.c"
     break;
 
   case 12: /* type: CHAR  */
-#line 155 "parser.y"
+#line 151 "parser.y"
               {node* t = mknode1("CHAR"); t->type = CHAR_T; yyval = t;}
-#line 1590 "y.tab.c"
+#line 1586 "y.tab.c"
     break;
 
   case 13: /* type: BOOL  */
-#line 156 "parser.y"
+#line 152 "parser.y"
               {node* t = mknode1("BOOL"); t->type = BOOL_T; yyval = t;}
-#line 1596 "y.tab.c"
+#line 1592 "y.tab.c"
     break;
 
   case 14: /* type: INT_P  */
-#line 157 "parser.y"
+#line 153 "parser.y"
                {node* t = mknode1("INT_P"); t->type = INT_P_T; yyval = t;}
-#line 1602 "y.tab.c"
+#line 1598 "y.tab.c"
     break;
 
   case 15: /* type: REAL_P  */
-#line 158 "parser.y"
+#line 154 "parser.y"
                 {node* t = mknode1("REAL_P"); t->type = REAL_P_T; yyval = t;}
-#line 1608 "y.tab.c"
+#line 1604 "y.tab.c"
     break;
 
   case 16: /* type: CHAR_P  */
-#line 159 "parser.y"
+#line 155 "parser.y"
                 {node* t = mknode1("CHAR_P"); t->type = CHAR_P_T; yyval = t;}
-#line 1614 "y.tab.c"
+#line 1610 "y.tab.c"
     break;
 
   case 17: /* type: STRING  */
-#line 160 "parser.y"
+#line 156 "parser.y"
                 {node* t = mknode1("STRING"); t->type = STRING_T; yyval = t;}
-#line 1620 "y.tab.c"
+#line 1616 "y.tab.c"
     break;
 
   case 18: /* parameters: ARGS args_var  */
-#line 165 "parser.y"
+#line 161 "parser.y"
                       {yyval = mknode("#",(struct node*[]){mknode1("("),yyvsp[0],nl(),NULL});}
-#line 1626 "y.tab.c"
+#line 1622 "y.tab.c"
     break;
 
   case 19: /* parameters: ARGS args_var ';' parameters  */
-#line 166 "parser.y"
+#line 162 "parser.y"
                                       {yyval = mknode("#",(struct node*[]){mknode1("("),yyvsp[-2],nl(),yyvsp[0],NULL});}
-#line 1632 "y.tab.c"
+#line 1628 "y.tab.c"
     break;
 
   case 20: /* parameters: %empty  */
-#line 167 "parser.y"
+#line 163 "parser.y"
           {
                 yyval = mknode("#",(struct node*[]){mknode1("NONE"),nl(),NULL});
           }
-#line 1640 "y.tab.c"
+#line 1636 "y.tab.c"
     break;
 
   case 21: /* args_var: ID ':' type  */
-#line 173 "parser.y"
+#line 169 "parser.y"
                     {yyval = mknode("#",(struct node*[]){yyvsp[-2],mknode1(","),yyvsp[0],mknode1(")"),NULL});yyval->type = yyvsp[0]->type;yyvsp[-2]->type = yyvsp[0]->type; }
-#line 1646 "y.tab.c"
+#line 1642 "y.tab.c"
     break;
 
   case 22: /* args_var: ID ',' args_var  */
-#line 174 "parser.y"
+#line 170 "parser.y"
                          {yyval = mknode("#",(struct node*[]){yyvsp[-2],mknode1(","),yyvsp[0],NULL});yyval->type = yyvsp[0]->type;yyvsp[-2]->type = yyvsp[0]->type; }
-#line 1652 "y.tab.c"
+#line 1648 "y.tab.c"
     break;
 
   case 23: /* block: comment_st code vars statements  */
-#line 177 "parser.y"
+#line 173 "parser.y"
                                       {
             yyval = mknode("#",(struct node*[]){yyvsp[-2],yyvsp[-1],yyvsp[0],NULL});
 
@@ -1664,118 +1660,118 @@ yyreduce:
             add_statements_to_scope(yyvsp[0], yyval->use_scope);
             yyval->scope->useScope = yyval->use_scope;
         }
-#line 1668 "y.tab.c"
+#line 1664 "y.tab.c"
     break;
 
   case 24: /* comment_st: COMMENT comment_st  */
-#line 191 "parser.y"
+#line 187 "parser.y"
                            {yyval = mknode1("#comment");}
-#line 1674 "y.tab.c"
+#line 1670 "y.tab.c"
     break;
 
   case 25: /* comment_st: %empty  */
-#line 192 "parser.y"
+#line 188 "parser.y"
           {yyval=mknode1("#");}
-#line 1680 "y.tab.c"
+#line 1676 "y.tab.c"
     break;
 
   case 26: /* statements: statement statements  */
-#line 196 "parser.y"
+#line 192 "parser.y"
                              {yyval = mknode("#statements",(struct node*[]){yyvsp[-1],yyvsp[0],NULL});}
-#line 1686 "y.tab.c"
+#line 1682 "y.tab.c"
     break;
 
   case 27: /* statements: %empty  */
-#line 197 "parser.y"
+#line 193 "parser.y"
           {yyval=mknode1("#");}
-#line 1692 "y.tab.c"
+#line 1688 "y.tab.c"
     break;
 
   case 28: /* vars: var_st vars  */
-#line 201 "parser.y"
+#line 197 "parser.y"
                     {yyval = mknode("#vars",(struct node*[]){yyvsp[-1],yyvsp[0],NULL});}
-#line 1698 "y.tab.c"
+#line 1694 "y.tab.c"
     break;
 
   case 29: /* vars: %empty  */
-#line 202 "parser.y"
+#line 198 "parser.y"
           {yyval=mknode1("#");}
-#line 1704 "y.tab.c"
+#line 1700 "y.tab.c"
     break;
 
   case 30: /* statement: if_st  */
-#line 206 "parser.y"
+#line 202 "parser.y"
               {
             yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = yyvsp[0]->use_scope;
         }
-#line 1713 "y.tab.c"
+#line 1709 "y.tab.c"
     break;
 
   case 31: /* statement: do_st  */
-#line 210 "parser.y"
+#line 206 "parser.y"
                {
             yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = yyvsp[0]->use_scope;
         }
-#line 1722 "y.tab.c"
+#line 1718 "y.tab.c"
     break;
 
   case 32: /* statement: while_st  */
-#line 214 "parser.y"
+#line 210 "parser.y"
                   {
             yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = yyvsp[0]->use_scope;
         }
-#line 1731 "y.tab.c"
+#line 1727 "y.tab.c"
     break;
 
   case 33: /* statement: for_st  */
-#line 218 "parser.y"
+#line 214 "parser.y"
                 {
             yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = yyvsp[0]->use_scope;
         }
-#line 1740 "y.tab.c"
+#line 1736 "y.tab.c"
     break;
 
   case 34: /* statement: assignment_st ';'  */
-#line 222 "parser.y"
+#line 218 "parser.y"
                            {
             yyval = mknode("#",(struct node*[]){yyvsp[-1],NULL});
             yyval->use_scope = yyvsp[-1]->use_scope;
         }
-#line 1749 "y.tab.c"
+#line 1745 "y.tab.c"
     break;
 
   case 35: /* statement: func_call ';'  */
-#line 226 "parser.y"
+#line 222 "parser.y"
                        {
             yyval = mknode("#func_call_stmt",(struct node*[]){yyvsp[-1],nl(),NULL});
             yyval->use_scope = yyvsp[-1]->use_scope;
         }
-#line 1758 "y.tab.c"
+#line 1754 "y.tab.c"
     break;
 
   case 36: /* statement: new_block  */
-#line 230 "parser.y"
+#line 226 "parser.y"
                   {
             yyval = mknode("#new_block",(struct node*[]){mknode1("(BLOCK"),nl(),
             mknode("",(struct node*[]){yyvsp[0],NULL})
             ,mknode1(")"),nl(),NULL});
             yyval->scope = yyvsp[0]->scope;
         }
-#line 1769 "y.tab.c"
+#line 1765 "y.tab.c"
     break;
 
   case 37: /* statement: COMMENT  */
-#line 236 "parser.y"
+#line 232 "parser.y"
                  {yyval = mknode1("#");printf("comment...\n");}
-#line 1775 "y.tab.c"
+#line 1771 "y.tab.c"
     break;
 
   case 38: /* statement_block: statement  */
-#line 240 "parser.y"
+#line 236 "parser.y"
                   {
             yyval = mknode("#statement_block",(struct node*[]){yyvsp[0],NULL});
             // printf("statement_block\n");
@@ -1793,11 +1789,11 @@ yyreduce:
 
             }
         }
-#line 1797 "y.tab.c"
+#line 1793 "y.tab.c"
     break;
 
   case 39: /* statement_block: return_st  */
-#line 257 "parser.y"
+#line 253 "parser.y"
                    {
             yyval = mknode("#statement_block",(struct node*[]){yyvsp[0],NULL});
             yyval->scope = newScope();
@@ -1809,17 +1805,16 @@ yyreduce:
             yyvsp[0]->pointer = yyval->scope;
             checkDuplicateVarOrFuncInScope(yyval->scope);
         }
-#line 1813 "y.tab.c"
+#line 1809 "y.tab.c"
     break;
 
   case 40: /* new_block: '{' vars statements return_st '}'  */
-#line 270 "parser.y"
+#line 266 "parser.y"
                                         {
             yyval = mknode("#",(struct node*[]){yyvsp[-3],yyvsp[-2],yyvsp[-1],NULL});
 
             yyval->scope = newScope();
             add_vars_to_scope(yyvsp[-3], yyval->scope);
-            yyval->scope->nestedBlocks = howManyBlockIhaveInside(yyvsp[-2],0);
 
             yyval->use_scope = newScope();
             add_statements_to_scope(yyvsp[-2], yyval->use_scope);
@@ -1831,17 +1826,16 @@ yyreduce:
             yyval->pointer = yyval->scope;
             checkDuplicateVarOrFuncInScope(yyval->scope);
         }
-#line 1835 "y.tab.c"
+#line 1830 "y.tab.c"
     break;
 
   case 41: /* new_block: '{' vars statements '}'  */
-#line 287 "parser.y"
+#line 282 "parser.y"
                                {
             yyval = mknode("#",(struct node*[]){yyvsp[-2],yyvsp[-1],NULL});
 
             yyval->scope = newScope();
             add_vars_to_scope(yyvsp[-2], yyval->scope);
-            yyval->scope->nestedBlocks = howManyBlockIhaveInside(yyvsp[-1],0);
 
             yyval->use_scope = newScope();
             add_statements_to_scope(yyvsp[-1], yyval->use_scope);
@@ -1851,11 +1845,11 @@ yyreduce:
             yyval->pointer = yyval->scope;
             checkDuplicateVarOrFuncInScope(yyval->scope);
         }
-#line 1855 "y.tab.c"
+#line 1849 "y.tab.c"
     break;
 
   case 42: /* if_st: IF '(' exp ')' statement_block  */
-#line 305 "parser.y"
+#line 299 "parser.y"
                                                       {
                 struct node* temp = mknode("",(struct node*[]){yyvsp[-2],yyvsp[0],NULL});
                 yyval = mknode("#",(struct node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
@@ -1863,11 +1857,11 @@ yyreduce:
                 addVarArrToScope(yyvsp[-2]->use_scope->varArr, yyval->use_scope);
                 addFunctionArrToScope(yyvsp[-2]->use_scope->funcsArr, yyval->use_scope);
                 }
-#line 1867 "y.tab.c"
+#line 1861 "y.tab.c"
     break;
 
   case 43: /* if_st: IF '(' exp ')' statement_block ELSE statement_block  */
-#line 312 "parser.y"
+#line 306 "parser.y"
                                                              {
                 struct node* temp = mknode("",(struct node*[]){yyvsp[-4],yyvsp[-2],yyvsp[0],NULL});
                 yyval = mknode("#",(struct node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
@@ -1875,11 +1869,11 @@ yyreduce:
                 addVarArrToScope(yyvsp[-4]->use_scope->varArr, yyval->use_scope);
                 addFunctionArrToScope(yyvsp[-4]->use_scope->funcsArr, yyval->use_scope);
                 }
-#line 1879 "y.tab.c"
+#line 1873 "y.tab.c"
     break;
 
   case 44: /* do_st: DO statement_block WHILE '(' exp ')' ';'  */
-#line 322 "parser.y"
+#line 316 "parser.y"
                                                  {
             struct node* whileDoConds = mknode("",(struct node*[]){
                     mknode1("(DO-WHILE-INIT"),nl(),
@@ -1902,11 +1896,11 @@ yyreduce:
             addVarArrToScope(yyvsp[-2]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[-2]->use_scope->funcsArr, yyval->use_scope);
         }
-#line 1906 "y.tab.c"
+#line 1900 "y.tab.c"
     break;
 
   case 45: /* while_st: WHILE '(' exp ')' statement_block  */
-#line 348 "parser.y"
+#line 342 "parser.y"
                                           {
             struct node* whileConds = mknode("",(struct node*[]){
                     mknode1("(WHILE-INIT"),nl(),
@@ -1929,11 +1923,11 @@ yyreduce:
             addVarArrToScope(yyvsp[-2]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[-2]->use_scope->funcsArr, yyval->use_scope);
         }
-#line 1933 "y.tab.c"
+#line 1927 "y.tab.c"
     break;
 
   case 46: /* for_st: FOR '(' assignment_st ';' exp ';' assignment_st ')' statement_block  */
-#line 373 "parser.y"
+#line 367 "parser.y"
                                                                             {
             struct node* forConds = mknode("",(struct node*[]){
                     mknode1("(FOR-INIT"),nl(),
@@ -1964,11 +1958,11 @@ yyreduce:
             addVarArrToScope(yyvsp[-2]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[-2]->use_scope->funcsArr, yyval->use_scope);
         }
-#line 1968 "y.tab.c"
+#line 1962 "y.tab.c"
     break;
 
   case 47: /* assignment_st: lhs '=' exp  */
-#line 408 "parser.y"
+#line 402 "parser.y"
                     {
             struct node* expTemp = mknode("",(struct node*[]){yyvsp[0],NULL});
             yyval = mknode("#assignment_st",(struct node*[]){mknode1("(="),yyvsp[-2],nl(),expTemp,mknode1(")"),nl(),NULL});
@@ -1977,89 +1971,89 @@ yyreduce:
             addVarArrToScope(yyvsp[0]->use_scope->varArr, yyval->use_scope);
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);
         }
-#line 1981 "y.tab.c"
+#line 1975 "y.tab.c"
     break;
 
   case 48: /* lhs: ID  */
-#line 419 "parser.y"
+#line 413 "parser.y"
            {
             yyval = mknode1(yyvsp[0]->token);
             yyval->use_scope = newScope();
             appendVarArr(yyval->use_scope->varArr, newVar_(yyvsp[0]->token));
         }
-#line 1991 "y.tab.c"
+#line 1985 "y.tab.c"
     break;
 
   case 49: /* lhs: ID '[' exp ']'  */
-#line 424 "parser.y"
+#line 418 "parser.y"
                         {
             yyval = mknode("#stringAtIndex",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});
             yyval->use_scope = newScope();
             appendVarArr(yyval->use_scope->varArr, newVar_(yyvsp[-3]->token));
         }
-#line 2001 "y.tab.c"
+#line 1995 "y.tab.c"
     break;
 
   case 50: /* lhs: '*' ID  */
-#line 429 "parser.y"
+#line 423 "parser.y"
                 {
             yyval = mknode("#derefId",(struct node*[]){mknode1("*"),mknode1(yyvsp[0]->token),NULL});
             yyval->use_scope = newScope();
             appendVarArr(yyval->use_scope->varArr, newVar_(yyvsp[0]->token));
         }
-#line 2011 "y.tab.c"
+#line 2005 "y.tab.c"
     break;
 
   case 51: /* value: STRING_VALUE  */
-#line 437 "parser.y"
+#line 431 "parser.y"
                  {yyval = mknode1(yyvsp[0]->token); yyval->type = STRING_T;}
-#line 2017 "y.tab.c"
+#line 2011 "y.tab.c"
     break;
 
   case 52: /* value: CHAR_VALUE  */
-#line 438 "parser.y"
+#line 432 "parser.y"
                  {yyval = mknode1(yyvsp[0]->token); yyval->type = CHAR_T;}
-#line 2023 "y.tab.c"
+#line 2017 "y.tab.c"
     break;
 
   case 53: /* value: TRUE_  */
-#line 439 "parser.y"
+#line 433 "parser.y"
             {yyval = mknode1("TRUE"); yyval->type = BOOL_T;}
-#line 2029 "y.tab.c"
+#line 2023 "y.tab.c"
     break;
 
   case 54: /* value: FALSE_  */
-#line 440 "parser.y"
+#line 434 "parser.y"
              {yyval = mknode1("FALSE"); yyval->type = BOOL_T;}
-#line 2035 "y.tab.c"
+#line 2029 "y.tab.c"
     break;
 
   case 55: /* value: NULL_  */
-#line 441 "parser.y"
+#line 435 "parser.y"
             {yyval = mknode1("NULL"); yyval->type = NULL_T;}
-#line 2041 "y.tab.c"
+#line 2035 "y.tab.c"
     break;
 
   case 56: /* value: HEX_VALUE  */
-#line 442 "parser.y"
+#line 436 "parser.y"
                 {yyval = mknode1(yyvsp[0]->token); yyval->type = INT_T;}
-#line 2047 "y.tab.c"
+#line 2041 "y.tab.c"
     break;
 
   case 57: /* value: DIGITS_VALUE  */
-#line 443 "parser.y"
+#line 437 "parser.y"
                    {yyval = mknode1(yyvsp[0]->token); yyval->type = INT_T;}
-#line 2053 "y.tab.c"
+#line 2047 "y.tab.c"
     break;
 
   case 58: /* value: REAL_VALUE  */
-#line 444 "parser.y"
+#line 438 "parser.y"
                  {yyval = mknode1(yyvsp[0]->token); yyval->type = REAL_T;}
-#line 2059 "y.tab.c"
+#line 2053 "y.tab.c"
     break;
 
   case 59: /* var_st: VAR var_list ';'  */
-#line 448 "parser.y"
+#line 442 "parser.y"
                          {
             yyval = mknode("#",(struct node*[]){mknode1("(VAR ")
             ,nl()
@@ -2070,11 +2064,11 @@ yyreduce:
             get_var_list(yyvsp[-1],yyval->scope->varArr);
             
         }
-#line 2074 "y.tab.c"
+#line 2068 "y.tab.c"
     break;
 
   case 60: /* var_st: STRING var_string_list ';'  */
-#line 458 "parser.y"
+#line 452 "parser.y"
                                     {
             yyval = mknode("#",(struct node*[]){mknode1("(VAR_STRING ")
             ,nl()
@@ -2084,160 +2078,160 @@ yyreduce:
             yyval->scope = newScope();
             get_var_string_list(yyvsp[-1],yyval->scope->varArr);
         }
-#line 2088 "y.tab.c"
+#line 2082 "y.tab.c"
     break;
 
   case 61: /* var_list: var_op ':' type  */
-#line 470 "parser.y"
+#line 464 "parser.y"
                         {yyval = mknode("#",(struct node*[]){yyvsp[-2],nl(),mknode1("Type: "),yyvsp[0],NULL});yyval->type = yyvsp[0]->type;yyvsp[-2]->type = yyvsp[0]->type;}
-#line 2094 "y.tab.c"
+#line 2088 "y.tab.c"
     break;
 
   case 62: /* var_list: var_op ',' var_list  */
-#line 471 "parser.y"
+#line 465 "parser.y"
                              {yyval = mknode("#",(struct node*[]){yyvsp[-2],nl(),yyvsp[0],NULL});yyval->type = yyvsp[0]->type;yyvsp[-2]->type = yyvsp[0]->type; }
-#line 2100 "y.tab.c"
+#line 2094 "y.tab.c"
     break;
 
   case 63: /* var_op: ID  */
-#line 475 "parser.y"
+#line 469 "parser.y"
            {yyval = mknode1(yyvsp[0]->token);}
-#line 2106 "y.tab.c"
+#line 2100 "y.tab.c"
     break;
 
   case 64: /* var_op: assignment_st  */
-#line 476 "parser.y"
+#line 470 "parser.y"
                        {yyval = mknode("#ass_in_var",(struct node*[]){yyvsp[0],NULL});}
-#line 2112 "y.tab.c"
+#line 2106 "y.tab.c"
     break;
 
   case 65: /* var_string_list: var_string_opt  */
-#line 480 "parser.y"
+#line 474 "parser.y"
                        {yyval = mknode("#",(struct node*[]){yyvsp[0],nl(),NULL});}
-#line 2118 "y.tab.c"
+#line 2112 "y.tab.c"
     break;
 
   case 66: /* var_string_list: var_string_opt ',' var_string_list  */
-#line 481 "parser.y"
+#line 475 "parser.y"
                                             {yyval = mknode("#",(struct node*[]){yyvsp[-2],nl(),yyvsp[0],NULL});}
-#line 2124 "y.tab.c"
+#line 2118 "y.tab.c"
     break;
 
   case 67: /* var_string_opt: ID '[' exp ']'  */
-#line 485 "parser.y"
+#line 479 "parser.y"
                        {yyval = mknode("#var_string_opt",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});}
-#line 2130 "y.tab.c"
+#line 2124 "y.tab.c"
     break;
 
   case 68: /* var_string_opt: assignment_st  */
-#line 486 "parser.y"
+#line 480 "parser.y"
                        {yyval = mknode("#ass_in_str",(struct node*[]){yyvsp[0],NULL});}
-#line 2136 "y.tab.c"
+#line 2130 "y.tab.c"
     break;
 
   case 69: /* func_call: ID '(' exp_list ')'  */
-#line 490 "parser.y"
+#line 484 "parser.y"
                             {
             yyval = mknode("#",(struct node*[]){mknode1("function call "),mknode1(yyvsp[-3]->token),mknode1("("),yyvsp[-1],mknode1(")"),NULL});
             yyval->use_scope = newScope();
             add_args_to_scope(yyvsp[-1], yyval->use_scope);
             appendFunctionArr(yyval->use_scope->funcsArr, newFunction(yyvsp[-3]->token,NONE_T,newVarArr()));
         }
-#line 2147 "y.tab.c"
+#line 2141 "y.tab.c"
     break;
 
   case 70: /* exp_list: exp  */
-#line 499 "parser.y"
+#line 493 "parser.y"
             {yyval = mknode("#exp_list",(struct node*[]){yyvsp[0],NULL});}
-#line 2153 "y.tab.c"
+#line 2147 "y.tab.c"
     break;
 
   case 71: /* exp_list: exp ',' exp_list  */
-#line 500 "parser.y"
+#line 494 "parser.y"
                            {yyval = mknode("#exp_list",(struct node*[]){yyvsp[-2],mknode1(","),yyvsp[0],NULL});}
-#line 2159 "y.tab.c"
+#line 2153 "y.tab.c"
     break;
 
   case 72: /* exp_list: %empty  */
-#line 501 "parser.y"
+#line 495 "parser.y"
           {yyval=mknode1("#");}
-#line 2165 "y.tab.c"
+#line 2159 "y.tab.c"
     break;
 
   case 73: /* exp: exp '+' exp  */
-#line 506 "parser.y"
+#line 500 "parser.y"
                       {yyval = expNode("( +",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("+",yyvsp[-2],yyvsp[0]);}
-#line 2171 "y.tab.c"
+#line 2165 "y.tab.c"
     break;
 
   case 74: /* exp: exp '-' exp  */
-#line 507 "parser.y"
+#line 501 "parser.y"
                       {yyval = expNode("( -",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("-",yyvsp[-2],yyvsp[0]);}
-#line 2177 "y.tab.c"
+#line 2171 "y.tab.c"
     break;
 
   case 75: /* exp: exp '*' exp  */
-#line 508 "parser.y"
+#line 502 "parser.y"
                       {yyval = expNode("( *",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("*",yyvsp[-2],yyvsp[0]);}
-#line 2183 "y.tab.c"
+#line 2177 "y.tab.c"
     break;
 
   case 76: /* exp: exp '/' exp  */
-#line 509 "parser.y"
+#line 503 "parser.y"
                       {yyval = expNode("( /",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("/",yyvsp[-2],yyvsp[0]);}
-#line 2189 "y.tab.c"
+#line 2183 "y.tab.c"
     break;
 
   case 77: /* exp: exp EQEQ exp  */
-#line 510 "parser.y"
+#line 504 "parser.y"
                        {yyval = expNode("( ==",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("==",yyvsp[-2],yyvsp[0]);}
-#line 2195 "y.tab.c"
+#line 2189 "y.tab.c"
     break;
 
   case 78: /* exp: exp NOT_EQ exp  */
-#line 511 "parser.y"
+#line 505 "parser.y"
                          {yyval = expNode("( !=",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("!=",yyvsp[-2],yyvsp[0]);}
-#line 2201 "y.tab.c"
+#line 2195 "y.tab.c"
     break;
 
   case 79: /* exp: exp '<' exp  */
-#line 512 "parser.y"
+#line 506 "parser.y"
                       {yyval = expNode("( <",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("<",yyvsp[-2],yyvsp[0]);}
-#line 2207 "y.tab.c"
+#line 2201 "y.tab.c"
     break;
 
   case 80: /* exp: exp SMALL_EQ exp  */
-#line 513 "parser.y"
+#line 507 "parser.y"
                            {yyval = expNode("( <=",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("<=",yyvsp[-2],yyvsp[0]);}
-#line 2213 "y.tab.c"
+#line 2207 "y.tab.c"
     break;
 
   case 81: /* exp: exp '>' exp  */
-#line 514 "parser.y"
+#line 508 "parser.y"
                       {yyval = expNode("( >",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode(">",yyvsp[-2],yyvsp[0]);}
-#line 2219 "y.tab.c"
+#line 2213 "y.tab.c"
     break;
 
   case 82: /* exp: exp BIG_EQ exp  */
-#line 515 "parser.y"
+#line 509 "parser.y"
                          {yyval = expNode("( >=",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode(">=",yyvsp[-2],yyvsp[0]);}
-#line 2225 "y.tab.c"
+#line 2219 "y.tab.c"
     break;
 
   case 83: /* exp: exp OR exp  */
-#line 516 "parser.y"
+#line 510 "parser.y"
                      {yyval = expNode("( ||",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("||",yyvsp[-2],yyvsp[0]);}
-#line 2231 "y.tab.c"
+#line 2225 "y.tab.c"
     break;
 
   case 84: /* exp: exp AND exp  */
-#line 517 "parser.y"
+#line 511 "parser.y"
                       {yyval = expNode("( &&",yyvsp[-2],yyvsp[0]); yyval->exp_node = mkExpNode("&&",yyvsp[-2],yyvsp[0]);}
-#line 2237 "y.tab.c"
+#line 2231 "y.tab.c"
     break;
 
   case 85: /* exp: '!' exp  */
-#line 518 "parser.y"
+#line 512 "parser.y"
                   {//
             yyval = mknode("#",(struct node*[]){mknode1("!"),nl(),yyvsp[0],NULL});
             yyval->use_scope = newScope();
@@ -2245,11 +2239,11 @@ yyreduce:
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);
             yyval->exp_node = mkExpNode("!",yyvsp[0],NULL);
         }
-#line 2249 "y.tab.c"
+#line 2243 "y.tab.c"
     break;
 
   case 86: /* exp: ID  */
-#line 525 "parser.y"
+#line 519 "parser.y"
              {
             yyval = mknode1(yyvsp[0]->token);
             yyval->use_scope = newScope();
@@ -2257,11 +2251,11 @@ yyreduce:
             yyval->exp_node = mkExpNode(yyvsp[0]->token,NULL,NULL);
             yyval->exp_node->leaf_type = ID_LEAF;
         }
-#line 2261 "y.tab.c"
+#line 2255 "y.tab.c"
     break;
 
   case 87: /* exp: func_call  */
-#line 532 "parser.y"
+#line 526 "parser.y"
                     {
             yyval = mknode("#func_call_as_exp",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = newScope();
@@ -2270,11 +2264,11 @@ yyreduce:
             yyval->exp_node = mkExpNode(yyvsp[0]->children[1]->token,NULL,NULL);
             yyval->exp_node->leaf_type = FUNC_CALL;
         }
-#line 2274 "y.tab.c"
+#line 2268 "y.tab.c"
     break;
 
   case 88: /* exp: '|' ID '|'  */
-#line 540 "parser.y"
+#line 534 "parser.y"
                      {
             yyval = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1(yyvsp[-1]->token),mknode1(")"),NULL});
             yyval->use_scope = newScope();
@@ -2282,17 +2276,17 @@ yyreduce:
             yyval->exp_node = mkExpNode(yyvsp[-1]->token,NULL,NULL);
             yyval->exp_node->leaf_type = LEN_OF_STR;
         }
-#line 2286 "y.tab.c"
+#line 2280 "y.tab.c"
     break;
 
   case 89: /* exp: '(' exp ')'  */
-#line 547 "parser.y"
+#line 541 "parser.y"
                       {yyval = yyvsp[-1];}
-#line 2292 "y.tab.c"
+#line 2286 "y.tab.c"
     break;
 
   case 90: /* exp: '&' ID  */
-#line 548 "parser.y"
+#line 542 "parser.y"
                  {
             yyval = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1(yyvsp[0]->token),mknode1(")"),NULL});
             yyval->use_scope = newScope();
@@ -2300,11 +2294,11 @@ yyreduce:
             yyval->exp_node = mkExpNode(yyvsp[0]->token,NULL,NULL);
             yyval->exp_node->leaf_type = ADDRESS_OF; 
         }
-#line 2304 "y.tab.c"
+#line 2298 "y.tab.c"
     break;
 
   case 91: /* exp: '&' ID '[' exp ']'  */
-#line 555 "parser.y"
+#line 549 "parser.y"
                              {
             yyval = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});
             yyval->use_scope = newScope();
@@ -2319,11 +2313,11 @@ yyreduce:
             yyval->exp_node = mkExpNode("addressOfChar",idNode,yyvsp[-1]);
 
         }
-#line 2323 "y.tab.c"
+#line 2317 "y.tab.c"
     break;
 
   case 92: /* exp: ID '[' exp ']'  */
-#line 569 "parser.y"
+#line 563 "parser.y"
                         {
             yyval = mknode("#",(struct node*[]){mknode1(yyvsp[-3]->token),mknode1("["),yyvsp[-1],mknode1("]"),NULL});
             yyval->use_scope = newScope();
@@ -2337,11 +2331,11 @@ yyreduce:
 
             yyval->exp_node = mkExpNode("charAt",idNode,yyvsp[-1]);
         }
-#line 2341 "y.tab.c"
+#line 2335 "y.tab.c"
     break;
 
   case 93: /* exp: '*' exp  */
-#line 582 "parser.y"
+#line 576 "parser.y"
                   {
             yyval = mknode("#",(struct node*[]){mknode1("dereference("),yyvsp[0],mknode1(")"),NULL});
             yyval->use_scope = newScope();
@@ -2349,11 +2343,11 @@ yyreduce:
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);
             yyval->exp_node = mkExpNode("dereference",yyvsp[0],NULL);
         }
-#line 2353 "y.tab.c"
+#line 2347 "y.tab.c"
     break;
 
   case 94: /* exp: value  */
-#line 589 "parser.y"
+#line 583 "parser.y"
                 {
             yyval = mknode("#",(struct node*[]){yyvsp[0],NULL});
             yyval->use_scope = newScope();
@@ -2361,11 +2355,11 @@ yyreduce:
             yyval->exp_node->leaf_type = VALUE;
             yyval->exp_node->result = yyvsp[0]->type;
         }
-#line 2365 "y.tab.c"
+#line 2359 "y.tab.c"
     break;
 
   case 95: /* exp: '-' exp  */
-#line 596 "parser.y"
+#line 590 "parser.y"
                   {
             yyval = mknode("#",(struct node*[]){mknode1("-"),yyvsp[0],NULL});
             yyval->use_scope = newScope();
@@ -2373,11 +2367,11 @@ yyreduce:
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);
             yyval->exp_node = mkExpNode("unary-",yyvsp[0],NULL);
         }
-#line 2377 "y.tab.c"
+#line 2371 "y.tab.c"
     break;
 
   case 96: /* exp: '+' exp  */
-#line 603 "parser.y"
+#line 597 "parser.y"
                   {
             yyval = mknode("#",(struct node*[]){mknode1("+"),yyvsp[0],NULL});
             yyval->use_scope = newScope();
@@ -2385,11 +2379,11 @@ yyreduce:
             addFunctionArrToScope(yyvsp[0]->use_scope->funcsArr, yyval->use_scope);
             yyval->exp_node = mkExpNode("unary+",yyvsp[0],NULL);
         }
-#line 2389 "y.tab.c"
+#line 2383 "y.tab.c"
     break;
 
 
-#line 2393 "y.tab.c"
+#line 2387 "y.tab.c"
 
       default: break;
     }
@@ -2582,7 +2576,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 613 "parser.y"
+#line 607 "parser.y"
 
 
 #include "lex.yy.c"
@@ -2597,7 +2591,6 @@ int main(){
     printf("printing tree\n");
     printtree(temp,0);
     printf("done printing tree\n");
-    /* semanticsCheck(temp); */
 }
 
 int yyerror(char* e){

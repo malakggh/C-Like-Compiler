@@ -6,8 +6,12 @@ function foo1(arg-> a, b, c : int; arg-> c1 : char) : bool
     {
         var x, b: char;
         var y: int;
+        var count: bool;
         b='&';
+
+        count = 7;
         /*1 a=x; 
+        
         
         
         */
@@ -104,7 +108,7 @@ function foo4() : int
         string y[10];
         var z: char;
         x=&y[5];
-        z=*(x-5);
+        z=*(x);
         y="barfoo";
         {
             var x: char;

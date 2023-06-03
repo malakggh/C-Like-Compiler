@@ -292,8 +292,6 @@ Scope* newScope() {
     scope->varArr = newVarArr();
     scope->funcsArr = newFunctionArr();
     scope->returnType = NONE_T;
-    scope->nestedBlocks = 0;
-    scope->nestedFuncs = 0;
     scope->useScope = NULL;
     return scope;
 }
@@ -450,8 +448,6 @@ void printScope(Scope* scope, int i) {
     printf("################# Start of Scope %d #####################\n", i);
     printf("Declartions: \n");
     printf("\tReturn Type: %s\n", getTypeAsString(scope->returnType));
-    // printf("\tNested Blocks: %d\n", scope->nestedBlocks);
-    // printf("\tNested Functions: %d\n\n", scope->nestedFuncs);
     
     printf("\t---- Variables ----\n\t");
     printVarArr(scope->varArr);
@@ -727,7 +723,7 @@ void getEachExpression(node* tree, ScopeStack* stack){
                 // var
                 Var* var = getVarOrExit(stack, lhs->token);
                 if (var->type != exp->exp_node->result){
-                    printf("Error: assignment type is not the same as the variable type\n");
+                    printf("Error: the assignment type does not match the variable type.\n\t\tThe specific mismatched types are %s=%s\n", getTypeAsString(var->type), getTypeAsString(exp->exp_node->result));
                     exit(1);
                 }
             }
@@ -1009,127 +1005,6 @@ void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack){
     }
 }
 
-
-int howManyBlockIhaveInside(node* tree,int count){
-    if (tree == NULL) return count;
-    if (strcmp(tree->token,"(BLOCK")==0){
-        count++;
-    }
-    for(int i=0; i<tree->child_num; i++){
-        count = howManyBlockIhaveInside(tree->children[i],count);
-    }
-    return count;
-}
-
-int howManyFunctionsIHaveInside(node* tree,int count){
-    if (tree == NULL) return count;
-    if (strcmp(tree->token,"(FUNC")==0){
-        count++;
-    }
-    for(int i=0; i<tree->child_num; i++){
-        count = howManyFunctionsIHaveInside(tree->children[i],count);
-    }
-    return count;
-}
-
-
-
-
-// these functions are not in use atm
-void semanticsCheck(node* tree){
-    printf("semanticsCheck\n");
-    // Create a scope stack
-    printf("create a scope stack\n");
-    ScopeStack* stack = newScopeStack();
-    // Create the global scope
-    printf("create the global scope\n");
-    Scope* global_scope = newScope();
-    // Push the global scope onto the stack
-    pushScope(stack, global_scope);
-    // Fill the global scope
-    printScope(global_scope, stack->len-1);
-    fillScope(stack, tree->children[2], global_scope, NULL, VOID_T);
-    printScope(global_scope, stack->len-1);
-}
-
-void fillScope(ScopeStack* stack, node* tree, Scope* scope, VarArr* varArr, enum Type returnType){
-    scope->varArr = deepCopyVarArr(varArr);
-    scope->returnType = returnType;
-    if(tree == NULL) return;
-    printf("fillScopeByTree\n");
-    fillScopeByTree(stack, tree, scope);
-}
-
-void topDownTree(node* tree){
-    if (tree == NULL) return;
-    printf("%s\n",tree->token);
-    for (int i = 0; i < tree->child_num; i++)
-    {
-        topDownTree(tree->children[i]);
-    }
-    
-}
-
-void fillScopeBody(ScopeStack* stack, node* tree, Scope* scope){
-    // we are inside a body of a function we don't need to start a new scope
-    // we've already done that in the function we have to fill the current scope
-    // within the new info
-    printf("topDownTree\n");
-    topDownTree(tree);
-    
-    
-}
-
-void fillScopeByTree(ScopeStack* stack, node* tree, Scope* scope){
-    if (tree == NULL) return;
-    for (int i = 0; i < tree->child_num; i++) {
-        char* token = tree->children[i]->token;
-        if ((strcmp(token,"#")==0) || strcmp(token,"")==0){
-            fillScopeByTree(stack, tree->children[i], scope);
-            continue;
-        }
-        // for each situation, check the scope
-        if (strcmp(token,"(FUNC")==0){
-            printf("add function\n");
-            node* func = tree->children[i+2];
-
-            // check if the function is already defined in the current scope
-            // if not, add it to the scope else throw error
-            // create a new scope for the function
-            // push the new scope onto the stack
-            // fill the new scope
-            // pop the scope from the stack
-
-            if (searchFunctionInScope(scope, func->children[0]->token) != NULL){
-                printf("Error: function %s is already defined in the current scope\n", func->children[0]->token);
-                exit(1);
-            }
-            Function* newFunc = newFunction(func->children[0]->token, VOID_T, NULL);
-            newFunc->returnType = getFunctionType(func);
-            printf("function return type is %s\n", getTypeAsString(newFunc->returnType));
-            newFunc->varArr = getFunctionVarArr(func);
-            // printf("index of (BODY is %d\n", indexOfSon(func, "(BODY"));
-            // printtree_REAL(func->children[indexOfSon(func, "(BODY")+2],0);
-            appendFunctionArr(scope->funcsArr, newFunc);
-            Scope* new_scope = newScope();
-            pushScope(stack, new_scope);
-            printScope(new_scope, stack->len-1);
-            new_scope->varArr = deepCopyVarArr(newFunc->varArr);
-            new_scope->returnType = newFunc->returnType;
-            fillScopeBody(stack,func->children[indexOfSon(func, "(BODY")+2],new_scope);
-            printScope(new_scope, stack->len-1);
-            popScope(stack);
-            
-        }
-        fillScopeByTree(stack, tree->children[i], scope);
-    }
-}
-
-
-
-
-
-
 enum Type getTypeAsEnum(char* type){
     if (strcmp(type,"INT")==0) return INT_T;
     if (strcmp(type,"REAL")==0) return REAL_T;
@@ -1154,9 +1029,6 @@ char* getTypeAsString(enum Type type){
     if (type == NONE_T) return "NONE";
     return "VOID";
 }
-
-// to scan tree bottom up you need to use post-order traversal
-// to scan tree top down you need to use pre-order traversal
 
 node* getFunctionVarArr_Scanner(node* func,VarArr* varArr){
     if (func == NULL) return NULL;
@@ -1281,15 +1153,6 @@ VarArr* getFunctionVarArr(node* func){
     return NULL;
 }
 
-enum Type getFunctionType(node* func){
-    // printtree_REAL(func,0);
-    if (indexOfSon(func, "(RET ") != -1)
-        return getTypeAsEnum(func->children[indexOfSon(func, "(RET ") + 1]->token);
-    else{
-        printf("Error: function %s has no return type\n", func->children[0]->token);
-        exit(1);
-    }
-}
 
 int indexOfSon(node* tree, char* token){
     for (int i = 0; i < tree->child_num; i++) {

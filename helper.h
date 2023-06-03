@@ -59,8 +59,6 @@ typedef struct Scope
     struct VarArr* varArr;
     struct FunctionArr* funcsArr;
     enum Type returnType;
-    int nestedBlocks;
-    int nestedFuncs;
     struct Scope* useScope;
 }Scope;
 
@@ -115,7 +113,6 @@ char* shifts(int n);
 
 // ##########################################################
 // FUNCS OF SEMANTICS
-void semanticsCheck(node* tree);
 Var* newVar(char* name, enum Type type);
 Var* newVar_(char* name);
 VarArr* newVarArr();
@@ -141,16 +138,11 @@ Scope* topScope(ScopeStack* stack);
 Function* searchFunctionInStack(ScopeStack* stack, char* name);
 Var* searchVarInStack(ScopeStack* stack, char* name);
 enum Type searchTypeInStack(ScopeStack* stack);
-void fillScope(ScopeStack* stack, node* tree,Scope* scope, VarArr* varArr, enum Type returnType);
-void fillScopeByTree(ScopeStack* stack, node* tree, Scope* scope);
-// ####################################################################
 
 enum Type getTypeAsEnum(char* type);
 char* getTypeAsString(enum Type type);
 // node* tree expected to be Parent
 int indexOfSon(node* tree, char* token);
-// node* tree expected to be Parent
-enum Type getFunctionType(node* func);
 // node* tree expected to be Parent
 VarArr* getFunctionVarArr(node* func);
 
@@ -165,10 +157,6 @@ void reverseStack(ScopeStack* stack);
 // ##########################################################
 
 void printSemanticOrder(node* tree);
-
-void printSemanticOrder_Scopes(node* tree,ScopeStack* stack, Scope* global_scope);
-
-void checkDuplicateVarOrFuncInStack(ScopeStack* stack);
 
 void checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(ScopeStack* stack);
 

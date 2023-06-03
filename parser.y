@@ -86,8 +86,6 @@ func_or_prod:
             // extract the vars from the block
             addVarArrToScope($9->scope->varArr, block_scope);
             addFunctionArrToScope($9->scope->funcsArr, block_scope);
-            block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
-            block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
             block_scope->useScope = $9->scope->useScope;
             addVarArrToScope($10->use_scope->varArr, block_scope->useScope);
             addFunctionArrToScope($10->use_scope->funcsArr, block_scope->useScope);
@@ -130,8 +128,6 @@ func_or_prod:
             // extract the vars from the block
             addVarArrToScope($9->scope->varArr, block_scope);
             addFunctionArrToScope($9->scope->funcsArr, block_scope);
-            block_scope->nestedBlocks = howManyBlockIhaveInside($9,0);
-            block_scope->nestedFuncs = howManyFunctionsIHaveInside($9,0);
             block_scope->useScope = $9->scope->useScope;
             //pushScope(stack, block_scope);    
             blockTemp->pointer = block_scope;
@@ -272,7 +268,6 @@ new_block:
 
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
-            $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
 
             $$->use_scope = newScope();
             add_statements_to_scope($3, $$->use_scope);
@@ -289,7 +284,6 @@ new_block:
 
             $$->scope = newScope();
             add_vars_to_scope($2, $$->scope);
-            $$->scope->nestedBlocks = howManyBlockIhaveInside($3,0);
 
             $$->use_scope = newScope();
             add_statements_to_scope($3, $$->use_scope);
@@ -624,7 +618,6 @@ int main(){
     printf("printing tree\n");
     printtree(temp,0);
     printf("done printing tree\n");
-    /* semanticsCheck(temp); */
 }
 
 int yyerror(char* e){

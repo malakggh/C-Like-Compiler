@@ -1,2 +1,2 @@
-Error: operator '-' expects operands of type INT, INT or REAL, REAL or INT, REAL or REAL, INT 
-	but got CHAR*, INT
+Error: the assignment type does not match the variable type.
+		The specific mismatched types are BOOL=INT

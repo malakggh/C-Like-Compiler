@@ -1,4 +1,4 @@
-# clear
+clear
 lex scanner.l
 yacc -d parser.y
 cc -o out y.tab.c -ll -Ly
