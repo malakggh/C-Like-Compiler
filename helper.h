@@ -77,6 +77,8 @@ typedef struct node {
     Scope* use_scope;
     Scope* pointer;
     struct expressionNode* exp_node;
+    char* var;
+    char* code;
 } node;
 
 enum leafType {
@@ -95,6 +97,8 @@ typedef struct expressionNode {
     struct node* left;
     struct node* right;
     enum leafType leaf_type;
+    char* var;
+    char* code;
 } expressionNode;
 
 #define YYSTYPE node* 
@@ -175,3 +179,11 @@ enum Type addressOf(enum Type type);
 enum Type dereferenceOf(enum Type type);
 
 void check_function_args(node* tree, ScopeStack* stack, VarArr* args);
+
+
+
+// ##########################################################
+// FUNCS OF 3AC
+
+char* freshVar();
+void getExpCode(expressionNode* expressionNode);

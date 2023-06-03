@@ -497,24 +497,25 @@ exp_list:
     /* void addVarArrToScope(VarArr* varArr, Scope* scope); */
 
 exp:		
-          exp '+' exp {$$ = expNode("( +",$1,$3); $$->exp_node = mkExpNode("+",$1,$3);}//			
-        | exp '-' exp {$$ = expNode("( -",$1,$3); $$->exp_node = mkExpNode("-",$1,$3);}//				
-        | exp '*' exp {$$ = expNode("( *",$1,$3); $$->exp_node = mkExpNode("*",$1,$3);}//
-        | exp '/' exp {$$ = expNode("( /",$1,$3); $$->exp_node = mkExpNode("/",$1,$3);}//		
-        | exp EQEQ exp {$$ = expNode("( ==",$1,$3); $$->exp_node = mkExpNode("==",$1,$3);}//
-        | exp NOT_EQ exp {$$ = expNode("( !=",$1,$3); $$->exp_node = mkExpNode("!=",$1,$3);}//
-        | exp '<' exp {$$ = expNode("( <",$1,$3); $$->exp_node = mkExpNode("<",$1,$3);}//
-        | exp SMALL_EQ exp {$$ = expNode("( <=",$1,$3); $$->exp_node = mkExpNode("<=",$1,$3);}//
-        | exp '>' exp {$$ = expNode("( >",$1,$3); $$->exp_node = mkExpNode(">",$1,$3);}//
-        | exp BIG_EQ exp {$$ = expNode("( >=",$1,$3); $$->exp_node = mkExpNode(">=",$1,$3);}//
-        | exp OR exp {$$ = expNode("( ||",$1,$3); $$->exp_node = mkExpNode("||",$1,$3);}//	
-        | exp AND exp {$$ = expNode("( &&",$1,$3); $$->exp_node = mkExpNode("&&",$1,$3);}//		
+          exp '+' exp {$$ = expNode("( +",$1,$3); $$->exp_node = mkExpNode("+",$1,$3);$$->exp_node->var = freshVar();}//			
+        | exp '-' exp {$$ = expNode("( -",$1,$3); $$->exp_node = mkExpNode("-",$1,$3);$$->exp_node->var = freshVar();}//				
+        | exp '*' exp {$$ = expNode("( *",$1,$3); $$->exp_node = mkExpNode("*",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp '/' exp {$$ = expNode("( /",$1,$3); $$->exp_node = mkExpNode("/",$1,$3);$$->exp_node->var = freshVar();}//		
+        | exp EQEQ exp {$$ = expNode("( ==",$1,$3); $$->exp_node = mkExpNode("==",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp NOT_EQ exp {$$ = expNode("( !=",$1,$3); $$->exp_node = mkExpNode("!=",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp '<' exp {$$ = expNode("( <",$1,$3); $$->exp_node = mkExpNode("<",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp SMALL_EQ exp {$$ = expNode("( <=",$1,$3); $$->exp_node = mkExpNode("<=",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp '>' exp {$$ = expNode("( >",$1,$3); $$->exp_node = mkExpNode(">",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp BIG_EQ exp {$$ = expNode("( >=",$1,$3); $$->exp_node = mkExpNode(">=",$1,$3);$$->exp_node->var = freshVar();}//
+        | exp OR exp {$$ = expNode("( ||",$1,$3); $$->exp_node = mkExpNode("||",$1,$3);$$->exp_node->var = freshVar();}//	
+        | exp AND exp {$$ = expNode("( &&",$1,$3); $$->exp_node = mkExpNode("&&",$1,$3);$$->exp_node->var = freshVar();}//		
         | '!' exp {//
             $$ = mknode("#",(struct node*[]){mknode1("!"),nl(),$2,NULL});
             $$->use_scope = newScope();
             addVarArrToScope($2->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
             $$->exp_node = mkExpNode("!",$2,NULL);
+            $$->exp_node->var = freshVar();
         } 								
         | ID {
             $$ = mknode1($1->token);
@@ -530,6 +531,7 @@ exp:
             addFunctionArrToScope($1->use_scope->funcsArr, $$->use_scope);
             $$->exp_node = mkExpNode($1->children[1]->token,NULL,NULL);
             $$->exp_node->leaf_type = FUNC_CALL;
+            $$->exp_node->var = freshVar();
         }	  							
         | '|' ID '|' {
             $$ = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});
@@ -545,6 +547,8 @@ exp:
             appendVarArr($$->use_scope->varArr, newVar_($2->token));   
             $$->exp_node = mkExpNode($2->token,NULL,NULL);
             $$->exp_node->leaf_type = ADDRESS_OF; 
+            $$->exp_node->var = freshVar();
+            $$->exp_node->code = plusStr($$->exp_node->var,plusStr(" = &", $2->token));
         }	  											
         | '&' ID '[' exp ']' {
             $$ = mknode("#",(struct node*[]){mknode1("addressOf("),mknode1($2->token),mknode1("["),$4,mknode1("]"),NULL});
@@ -558,6 +562,7 @@ exp:
             idNode->exp_node->leaf_type = ID_LEAF;
 
             $$->exp_node = mkExpNode("addressOfChar",idNode,$4);
+            $$->exp_node->var = freshVar();
 
         }
         | ID '[' exp ']'{
@@ -572,6 +577,7 @@ exp:
             idNode->exp_node->leaf_type = ID_LEAF;
 
             $$->exp_node = mkExpNode("charAt",idNode,$3);
+            $$->exp_node->var = freshVar();
         }
         | '*' exp {
             $$ = mknode("#",(struct node*[]){mknode1("dereference("),$2,mknode1(")"),NULL});
@@ -579,6 +585,7 @@ exp:
             addVarArrToScope($2->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
             $$->exp_node = mkExpNode("dereference",$2,NULL);
+            $$->exp_node->var = freshVar();
         }
         | value {
             $$ = mknode("#",(struct node*[]){$1,NULL});
@@ -586,6 +593,7 @@ exp:
             $$->exp_node = mkExpNode($1->token,NULL,NULL);
             $$->exp_node->leaf_type = VALUE;
             $$->exp_node->result = $1->type;
+            $$->exp_node->var = $1->token;
         }
         | '-' exp {
             $$ = mknode("#",(struct node*[]){mknode1("-"),$2,NULL});
@@ -593,6 +601,7 @@ exp:
             addVarArrToScope($2->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
             $$->exp_node = mkExpNode("unary-",$2,NULL);
+            $$->exp_node->var = freshVar();
         }
         | '+' exp {
             $$ = mknode("#",(struct node*[]){mknode1("+"),$2,NULL});
@@ -600,6 +609,7 @@ exp:
             addVarArrToScope($2->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($2->use_scope->funcsArr, $$->use_scope);
             $$->exp_node = mkExpNode("unary+",$2,NULL);
+            $$->exp_node->var = freshVar();
         }
         ;
 

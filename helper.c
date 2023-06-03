@@ -24,6 +24,8 @@ node* mknode(char* token, node** children) {
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
     newnode->exp_node = NULL;
+    newnode->var = NULL;
+    newnode->code = NULL;
     return newnode;
 }
 
@@ -39,6 +41,8 @@ node* mknode1(char* token) {
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
     newnode->exp_node = NULL;
+    newnode->var = NULL;
+    newnode->code = NULL;
     return newnode;
 }
 
@@ -63,6 +67,8 @@ expressionNode* mkExpNode(char* name,node* left,node* right){
     temp->right = right;
     temp->result = NONE_T;
     temp->leaf_type = NOT_LEAF;
+    temp->var = NULL;
+    temp->code = NULL;
     return temp;
 }
 
@@ -190,13 +196,18 @@ char* shifts(int n){
 }
 
 char* plusStr(char* str1,char* str2){
-        int len1 = strlen(str1);
-        int len2 = strlen(str2);
+    if (str1 == NULL && str2 == NULL) return NULL;
+    if (str1 == NULL && strcmp(str2,"\n")==0) return NULL;
+    if (str2 == NULL && strcmp(str1,"\n")==0) return NULL;
+    if (str1 == NULL) return str2;
+    if (str2 == NULL) return str1;
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
 
-        char* result = (char*)malloc(len1 + len2 + 1);
-        strcpy(result, str1);
-        strcpy(result + len1, str2);
-        return result;
+    char* result = (char*)malloc(len1 + len2 + 1);
+    strcpy(result, str1);
+    strcpy(result + len1, str2);
+    return result;
 }
 
 int indexOf(char* str, char chr) {
@@ -649,6 +660,8 @@ void getEachExpression(node* tree, ScopeStack* stack){
         }else if (strcmp(child->token,"(IF")==0){
             node* exp = tree->children[i+2]->children[0];
             getExpType(exp->exp_node,stack);
+            getExpCode(exp->exp_node);
+            printf("exp code\n%s\n", exp->exp_node->code);
             if (exp->exp_node->result != BOOL_T){
                 printf("Error: if condition must be of type bool\n");
                 exit(1);
@@ -950,6 +963,18 @@ void getExpType(expressionNode* expressionNode, ScopeStack* stack){
         expressionNode->result = CHAR_T;
      }else if (strcmp(expressionNode->name, "dereference")==0){
         expressionNode->result = dereferenceOf(expressionNode->left->exp_node->result);
+     }else if (strcmp(expressionNode->name, "unary-")==0){
+        if (expressionNode->left->exp_node->result != INT_T && expressionNode->left->exp_node->result != REAL_T){
+            printf("Error: operator - can only be used on INT, REAL\n");
+            exit(1);
+        }
+        expressionNode->result = expressionNode->left->exp_node->result;
+     }else if (strcmp(expressionNode->name, "unary+")==0){
+        if (expressionNode->left->exp_node->result != INT_T && expressionNode->left->exp_node->result != REAL_T){
+            printf("Error: operator + can only be used on INT, REAL\n");
+            exit(1);
+        }
+        expressionNode->result = expressionNode->left->exp_node->result;
      }
 
 }
@@ -1161,4 +1186,107 @@ int indexOfSon(node* tree, char* token){
             return i;
     }
     return -1;
+}
+
+// ###############################################################
+
+char* freshVar(){
+    static int i = 1;
+    char* var = malloc(100);
+    sprintf(var, "t%d", i);
+    i++;
+    return var;
+}
+
+
+void getExpCode(expressionNode* expressionNode){
+    if (expressionNode->leaf_type != NOT_LEAF) {
+        // we are dealing with leaf
+        if (expressionNode->leaf_type == ID_LEAF){
+            expressionNode->var = expressionNode->name;
+        
+        }else if(expressionNode->leaf_type == FUNC_CALL){
+            
+        }else if(expressionNode->leaf_type == LEN_OF_STR){
+            
+
+        }else if(expressionNode->leaf_type == ADDRESS_OF){
+        }
+        // else if(expressionNode->leaf_type == DEREFERENCE){
+        //     Var* var = getVarOrExit(stack, expressionNode->name);
+        //     expressionNode->result = dereferenceOf(var->type);
+        // }
+        return;
+    }
+    if (expressionNode->left != NULL)
+        getExpCode(expressionNode->left->exp_node);
+    if (expressionNode->right != NULL)
+        getExpCode(expressionNode->right->exp_node);
+    
+    if (strcmp(expressionNode->name,"+")==0 || strcmp(expressionNode->name,"-")==0 || strcmp(expressionNode->name,"*")==0 || strcmp(expressionNode->name,"/")==0 || strcmp(expressionNode->name,"<=")==0 || strcmp(expressionNode->name,">=")==0 || strcmp(expressionNode->name,"<")==0 || strcmp(expressionNode->name,">")==0 || strcmp(expressionNode->name,"==")==0 || strcmp(expressionNode->name,"!=")==0){
+        char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr(expressionNode->left->exp_node->var, plusStr(" ",expressionNode->name)), plusStr(" ",expressionNode->right->exp_node->var)));
+        char* prevCode = plusStr(
+            plusStr(expressionNode->left->exp_node->code, "\n"), plusStr(expressionNode->right->exp_node->code, "\n")
+            );
+        expressionNode->code = plusStr(prevCode, operation);
+        // printf("-------------------\n");
+        // printf("inner code for %s\n%s\n", expressionNode->name, expressionNode->code);
+        // printf("inner prevCode\n%s\n", prevCode);
+        // printf("inner operation\n%s\n", operation);
+        // printf("exp left var '%s' for %s\n", expressionNode->left->exp_node->var, expressionNode->name);
+        // printf("exp right var '%s' for %s\n", expressionNode->right->exp_node->var, expressionNode->name);
+        // printf("exp left code '%s' for %s\n", expressionNode->left->code, expressionNode->name);
+        // printf("exp right code '%s' for %s\n", expressionNode->right->code, expressionNode->name);
+        // printf("-------------------\n");
+        // if (strcmp(expressionNode->name,"/")==0){
+        //     printf("div between %s and %s\n", expressionNode->left->exp_node->var, expressionNode->right->exp_node->var);
+        // }
+
+    
+    }else if (strcmp(expressionNode->name, "unary-")==0){
+        char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr("-",expressionNode->left->exp_node->var), ""));
+        char* prevCode = plusStr(expressionNode->left->exp_node->code, "\n");
+        expressionNode->code = plusStr(prevCode, operation);
+        // printf("unary- code '%s'\n", expressionNode->code);
+        // printf("unary- operation '%s'\n", operation);
+    }else if (strcmp(expressionNode->name, "unary+")==0){
+        char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr("+",expressionNode->left->exp_node->var), ""));
+        char* prevCode = plusStr(expressionNode->left->exp_node->code, "\n");
+        expressionNode->code = plusStr(prevCode, operation);
+    }
+    else if (strcmp(expressionNode->name, "&&")==0){
+        checkUpdateBoolOperation(expressionNode, "&&");
+    }else if (strcmp(expressionNode->name, "||")==0){
+        checkUpdateBoolOperation(expressionNode, "||");
+    
+    }else if (strcmp(expressionNode->name, "!")==0){
+        if (expressionNode->left->exp_node->result != BOOL_T){
+            printf("Error: operator ! can only be used on BOOL\n");
+            exit(1);
+        }
+        expressionNode->result = BOOL_T;
+    }else if (strcmp(expressionNode->name, "addressOfChar")==0){
+        if (expressionNode->left->exp_node->result != STRING_T){
+            printf("Error: operator [] can only be used on STRING\n");
+            exit(1);
+        }
+        if (expressionNode->right->exp_node->result != INT_T){
+            printf("Error: operator [] can only be used with INT\n");
+            exit(1);
+        }
+        expressionNode->result = CHAR_P_T;
+    }else if (strcmp(expressionNode->name, "charAt")==0){
+        if (expressionNode->left->exp_node->result != STRING_T){
+            printf("Error: operator [] can only be used on STRING\n");
+            exit(1);
+        }
+        if (expressionNode->right->exp_node->result != INT_T){
+            printf("Error: operator [] can only be used with INT\n");
+            exit(1);
+        }
+        expressionNode->result = CHAR_T;
+     }else if (strcmp(expressionNode->name, "dereference")==0){
+        expressionNode->result = dereferenceOf(expressionNode->left->exp_node->result);
+     }
+
 }
