@@ -1,0 +1,8 @@
+# Compiled files
+a.out
+lex.yy.c
+y.tab.c
+y.tab.h
+
+# Output files
+output_part1.r
