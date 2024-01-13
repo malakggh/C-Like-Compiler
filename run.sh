@@ -1,16 +1,20 @@
+# Create the directory if it doesn't exist
+mkdir -p compiled_files
+
+# Clear the screen
 clear
-lex scanner.l
-yacc -d parser.y
-cc -o out y.tab.c -ll -Ly
-# ./out<inputTest.txt > output_part1.txt
-# clear
-./out<tests/part3.c > output_part1.r
 
+# Run Lex
+lex -o compiled_files/lex.yy.c scanner.l
 
-# #debugging
-# clear
-# lex scanner.l
-# yacc -d parser.y
-# cc -g -o out y.tab.c -ll -Ly
-# ./out<tests/part3.c > output_part1.r
+# Run Yacc
+yacc -d -o compiled_files/y.tab.c parser.y
+
+# Compile the C code
+cc -I . -o compiled_files/out compiled_files/y.tab.c -ll -Ly
+
+# Run the compiled code and redirect output
+compiled_files/out < inputs/part3.c > output.r
+
+# to debug use
 # gdb ./out
