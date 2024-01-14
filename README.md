@@ -4,6 +4,23 @@
 
 This project, developed as part of the "Introduction to Compilation" course, entails the creation of a compiler for a C-like language. The compiler is implemented using Lex and Yacc to build a lexical scanner and parser. The parser is designed to construct an Abstract Syntax Tree (AST) for any valid code in the specified language. If there are any syntax errors, the parser is responsible for printing an error message indicating the type of error.
 
+## Project Structure
+
+Here's a brief overview of the project structure:
+
+- [`scanner.l`](scanner.l): Lex file defining the lexical analyzer and tokens recognized by the compiler.
+
+- [`parser.y`](parser.y): Yacc file containing the grammar of the language that the compiler is parsing.
+  
+- [`compiled_files/`](compiled_files/): This directory contains output files generated during the compilation process.
+
+- [`helper.c`](helper.c) and [`helper.h`](helper.h): These files contain helper functions used in the project.
+
+- [`inputs/`](inputs/): Various input files for testing the code.
+
+- [`run.sh`](run.sh): Shell script automating the compilation and execution process.
+
+
 ## Lexical Scanner
 
 The lexical scanner, implemented in Lex, tokenizes the input code and passes it to the parser. If there are any lexical errors, appropriate error messages are generated. The scanner also includes a function to scan the AST in preorder and print it if the code is valid. The code is printed with indentation and parentheses to emphasize the code structure.
