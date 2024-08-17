@@ -10,3 +10,5 @@ output.r
 
 # Ignore everything inside compiled_files directory
 compiled_files/*
+
+inputs/*

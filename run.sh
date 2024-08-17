@@ -14,7 +14,7 @@ yacc -d -o compiled_files/y.tab.c parser.y
 cc -I . -o compiled_files/out compiled_files/y.tab.c -ll -Ly
 
 # Run the compiled code and redirect output
-compiled_files/out < inputs/part3.c > output.r
+compiled_files/out < inputs/input.c > output.r
 
 # to debug use
 # gdb ./out
