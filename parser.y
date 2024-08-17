@@ -202,6 +202,7 @@ statement:
         if_st {
             $$ = mknode("#",(struct node*[]){$1,NULL});
             $$->use_scope = $1->use_scope;
+            $$->code = $1->code;
         }
         |do_st {
             $$ = mknode("#",(struct node*[]){$1,NULL});
@@ -297,19 +298,23 @@ new_block:
 
 if_st:
         IF '(' exp ')' statement_block %prec non_else {
-                struct node* temp = mknode("",(struct node*[]){$3,$5,NULL});
-                $$ = mknode("#",(struct node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
-                $$->use_scope = newScope();
-                addVarArrToScope($3->use_scope->varArr, $$->use_scope);
-                addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
-                }
+            struct node* temp = mknode("",(struct node*[]){$3,$5,NULL});
+            $$ = mknode("#",(struct node*[]){mknode1("(IF"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
+            $$->beginLabel = freshLabel();
+            $$->nextLabel = freshLabel();
+            }
         |IF '(' exp ')' statement_block ELSE statement_block {
-                struct node* temp = mknode("",(struct node*[]){$3,$5,$7,NULL});
-                $$ = mknode("#",(struct node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
-                $$->use_scope = newScope();
-                addVarArrToScope($3->use_scope->varArr, $$->use_scope);
-                addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
-                }
+            struct node* temp = mknode("",(struct node*[]){$3,$5,$7,NULL});
+            $$ = mknode("#",(struct node*[]){mknode1("(IF-ELSE"),nl(),temp,nl(),mknode1(")"),nl(),NULL});
+            $$->use_scope = newScope();
+            addVarArrToScope($3->use_scope->varArr, $$->use_scope);
+            addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
+            $$->beginLabel = freshLabel();
+            $$->nextLabel = freshLabel();
+            }
         ;
 
 do_st:
@@ -334,6 +339,8 @@ do_st:
             $$->use_scope = newScope();
             addVarArrToScope($5->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($5->use_scope->funcsArr, $$->use_scope);
+            $$->beginLabel = freshLabel();
+            $$->nextLabel = freshLabel();
         }
         ;
 
@@ -360,6 +367,8 @@ while_st:
             $$->use_scope = newScope();
             addVarArrToScope($3->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($3->use_scope->funcsArr, $$->use_scope);
+            $$->beginLabel = freshLabel();
+            $$->nextLabel = freshLabel();
         }
         ;
 
@@ -393,6 +402,12 @@ for_st:
             
             addVarArrToScope($7->use_scope->varArr, $$->use_scope);
             addFunctionArrToScope($7->use_scope->funcsArr, $$->use_scope);
+            $$->beginLabel = freshLabel();
+            $$->nextLabel = freshLabel();
+
+            // change the #assignment_st to #assignment_st_for
+            $3->token = "#assignment_st_for";
+            $7->token = "#assignment_st_for";
         }
         ;
         /* void addVarArrToScope(VarArr* varArr, Scope* scope); */
@@ -419,6 +434,7 @@ lhs:
             $$ = mknode("#stringAtIndex",(struct node*[]){mknode1($1->token),mknode1("["),$3,mknode1("]"),NULL});
             $$->use_scope = newScope();
             appendVarArr($$->use_scope->varArr, newVar_($1->token));
+            $$->beginLabel = freshVar();
         }
         |'*' ID {
             $$ = mknode("#derefId",(struct node*[]){mknode1("*"),mknode1($2->token),NULL});
@@ -523,6 +539,7 @@ exp:
             appendVarArr($$->use_scope->varArr, newVar_($1->token));
             $$->exp_node = mkExpNode($1->token,NULL,NULL);
             $$->exp_node->leaf_type = ID_LEAF;
+            $$->exp_node->var = $1->token;
         }											
         | func_call {
             $$ = mknode("#func_call_as_exp",(struct node*[]){$1,NULL});
@@ -532,6 +549,7 @@ exp:
             $$->exp_node = mkExpNode($1->children[1]->token,NULL,NULL);
             $$->exp_node->leaf_type = FUNC_CALL;
             $$->exp_node->var = freshVar();
+            $$->exp_node->func = $1;
         }	  							
         | '|' ID '|' {
             $$ = mknode("#",(struct node*[]){mknode1("lenOf("),mknode1($2->token),mknode1(")"),NULL});
@@ -539,6 +557,8 @@ exp:
             appendVarArr($$->use_scope->varArr, newVar_($2->token));
             $$->exp_node = mkExpNode($2->token,NULL,NULL);
             $$->exp_node->leaf_type = LEN_OF_STR;
+            $$->exp_node->var = freshVar();
+            $$->exp_node->code = gen(4,$$->exp_node->var," = |", $2->token, "|");
         }	 									
         | '(' exp ')' {$$ = $2;}														
         | '&' ID {
@@ -560,9 +580,10 @@ exp:
             struct node* idNode = mknode1($2->token);
             idNode->exp_node = mkExpNode($2->token,NULL,NULL);
             idNode->exp_node->leaf_type = ID_LEAF;
+            idNode->exp_node->var = freshVar();
 
             $$->exp_node = mkExpNode("addressOfChar",idNode,$4);
-            $$->exp_node->var = freshVar();
+            $$->exp_node->var = idNode->exp_node->var;
 
         }
         | ID '[' exp ']'{
@@ -575,6 +596,7 @@ exp:
             struct node* idNode = mknode1($1->token);
             idNode->exp_node = mkExpNode($1->token,NULL,NULL);
             idNode->exp_node->leaf_type = ID_LEAF;
+            idNode->exp_node->var = freshVar();
 
             $$->exp_node = mkExpNode("charAt",idNode,$3);
             $$->exp_node->var = freshVar();

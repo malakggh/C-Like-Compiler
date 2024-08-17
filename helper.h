@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include "string_manager.h"
 // Authors:
 //     ***REMOVED*** ***REMOVED***,
 //     ***REMOVED*** ***REMOVED***,
@@ -77,7 +79,8 @@ typedef struct node {
     Scope* use_scope;
     Scope* pointer;
     struct expressionNode* exp_node;
-    char* var;
+    char* beginLabel;
+    char* nextLabel;
     char* code;
 } node;
 
@@ -99,6 +102,7 @@ typedef struct expressionNode {
     enum leafType leaf_type;
     char* var;
     char* code;
+    struct node* func;
 } expressionNode;
 
 #define YYSTYPE node* 
@@ -168,7 +172,7 @@ void mainCheck(Scope* scopeOfFunc);
 
 void processScope(ScopeStack* stack, node* tree);
 
-void getEachExpression(node* tree, ScopeStack* stack);
+void getEachExpression(node* tree, ScopeStack* stack, node* root);
 
 void getExpType(expressionNode* expressionNode, ScopeStack* stack);
 
@@ -178,12 +182,16 @@ enum Type addressOf(enum Type type);
 
 enum Type dereferenceOf(enum Type type);
 
-void check_function_args(node* tree, ScopeStack* stack, VarArr* args);
+void check_function_args(node* tree, ScopeStack* stack, VarArr* args, node*);
 
-
+void semantic_for_each_function(node* tree,ScopeStack* stack, Scope* global_scope);
 
 // ##########################################################
 // FUNCS OF 3AC
 
 char* freshVar();
-void getExpCode(expressionNode* expressionNode);
+char* freshLabel();
+char* gen(int arg_count, ...) ;
+void getExpCode(expressionNode* expressionNode, char* beginLabel, char* nextLabel);
+int get_size_of_var(enum Type type);
+

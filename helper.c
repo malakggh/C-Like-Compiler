@@ -24,8 +24,9 @@ node* mknode(char* token, node** children) {
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
     newnode->exp_node = NULL;
-    newnode->var = NULL;
     newnode->code = NULL;
+    newnode->beginLabel = NULL;
+    newnode->nextLabel = NULL;
     return newnode;
 }
 
@@ -41,8 +42,9 @@ node* mknode1(char* token) {
     newnode->use_scope = NULL;
     newnode->pointer = NULL;
     newnode->exp_node = NULL;
-    newnode->var = NULL;
     newnode->code = NULL;
+    newnode->beginLabel = NULL;
+    newnode->nextLabel = NULL;
     return newnode;
 }
 
@@ -69,6 +71,7 @@ expressionNode* mkExpNode(char* name,node* left,node* right){
     temp->leaf_type = NOT_LEAF;
     temp->var = NULL;
     temp->code = NULL;
+    temp->func = NULL;
     return temp;
 }
 
@@ -482,52 +485,9 @@ void printScopeStack(ScopeStack* stack){
     }
 }
 
-void reverseStack(ScopeStack* stack){
-    if (stack == NULL) return;
-    // reverse the stack in place
-    int i = 0;
-    int j = stack->len-1;
-    while(i<j){
-        Scope* temp = stack->scopes[i];
-        stack->scopes[i] = stack->scopes[j];
-        stack->scopes[j] = temp;
-        i++;
-        j--;
-    }
-}
 
 
 
-void printSemanticOrder(node* tree){
-    if (tree == NULL) return;
-
-
-    for(int i=0; i<tree->child_num; i++){
-        node* child = tree->children[i];
-        if (strcmp(child->token,"(BODY")==0){
-            printf("BODY:\n");
-            printtree(tree->children[i+2],0);
-        }
-        if (strcmp(child->token,"(BLOCK")==0){
-            printf("BLOCK:\n");
-            printtree(tree->children[i+2]->children[0],0);
-        }
-        if (strcmp(child->token,"#global_scope")==0){
-            printf("global_scope:\n");
-            printtree(child->children[0],0);
-            break;
-        }
-        if (strcmp(child->token,"#statement_block")==0 && 
-            !(strcmp(child->children[0]->token,"#new_block")==0)){
-                printf("#statement_block:\n");
-                printtree(child->children[0],0);
-        }
-    }
-    for(int i=0; i<tree->child_num; i++){
-        printSemanticOrder(tree->children[i]);
-    }
-
-}
 // here to continue
 // trying to print the scopes in the right order
 void startSemanticCheck(node* tree,ScopeStack* stack){
@@ -589,9 +549,16 @@ void semantic_for_each_function(node* tree,ScopeStack* stack, Scope* global_scop
     for(int i=0; i<tree->child_num; i++){
         node* child = tree->children[i];
         if (strcmp(child->token,"#global_scope")==0){
-            // printf("semantics test for function: %s\n",child->children[0]->children[2]->children[0]->token);
             addFunctionArrToScope(child->children[0]->pointer->funcsArr, global_scope);
             startSemanticCheck(child->children[0],stack);
+
+            char* funcName = child->children[0]->children[2]->children[0]->token;
+            node* body = child->children[0]->children[2]->children[11+2];
+            body->code = gen(5,
+                funcName, ":\n", "\tBeginFunc\n", transformText(body->code), "\n\tEndFunc\n\n\n");
+            printf("%s", body->code);
+            
+            
             break;
         }
     }
@@ -599,6 +566,7 @@ void semantic_for_each_function(node* tree,ScopeStack* stack, Scope* global_scop
         semantic_for_each_function(tree->children[i],stack,global_scope);
     }
 }
+
 
 int mainFound = 0;
 
@@ -636,15 +604,32 @@ void mainCheck(Scope* scopeOfFunc){
 
 void processScope(ScopeStack* stack, node* tree){
     checkEveryVarOrFunctionInScopeIfDefinedBeforeUse(stack);
-    // printScope(topScope(stack), stack->len-1);
-    getEachExpression(tree,stack);
-
+    getEachExpression(tree,stack,tree);
+    // if (tree->code != NULL)
+    //     printf("***********************\ntree->code: for %s \n%s\n***********************", tree->token,tree->code);
 }
 
-void getEachExpression(node* tree, ScopeStack* stack){
+node* getBlock(node* tree){
+    // here we have statment or return_st
+    if (strcmp(tree->children[0]->token,"#ret_st")==0){
+        // return_st
+        return tree->children[0];
+    }else if(strcmp(tree->children[0]->token,"#new_block")!=0){
+        // statement
+        return tree->children[0];
+    }else{
+        // block
+        node* statement = tree->children[0];
+        return statement->children[2]->children[0];
+    }
+    printf("Error: can't find block\n");
+    exit(1);
+}
+
+void getEachExpression(node* tree, ScopeStack* stack,node* root){
     if (tree == NULL) return;
     for (int i = 0; i < tree->child_num; i++) {
-        getEachExpression(tree->children[i],stack);
+        getEachExpression(tree->children[i],stack,root);
     }
     for (int i = 0; i < tree->child_num; i++) {
         node* child = tree->children[i];
@@ -655,17 +640,34 @@ void getEachExpression(node* tree, ScopeStack* stack){
                 printf("Error: return type is not the same as the function return type\n");
                 exit(1);
             }
+
+            // 3AC
+            getExpCode(exp->exp_node,NULL,NULL);
+            child->code = gen(4,
+                exp->exp_node->code, "\nreturn ", exp->exp_node->var, "\n");
+            root->code = gen(3,
+                root->code,"\n", child->code);
             child->token = "#ret_st-DONE";
             return;
         }else if (strcmp(child->token,"(IF")==0){
             node* exp = tree->children[i+2]->children[0];
             getExpType(exp->exp_node,stack);
-            getExpCode(exp->exp_node);
-            printf("exp code\n%s\n", exp->exp_node->code);
             if (exp->exp_node->result != BOOL_T){
                 printf("Error: if condition must be of type bool\n");
                 exit(1);
             }
+
+
+            // 3AC
+            node* block = getBlock(tree->children[i+2]->children[1]);
+            getExpCode(exp->exp_node,tree->beginLabel,tree->nextLabel);
+            tree->code = gen(9+2
+                ,exp->exp_node->code, "\nifz ", exp->exp_node->var, " goto ", tree->nextLabel, "\n",
+                tree->beginLabel, ":\n",
+                block->code, tree->nextLabel, ":\n");
+
+            root->code = gen(2,root->code, tree->code);
+
             child->token = "(IF-DONE";
             return;
         }else if(strcmp(child->token,"(IF-ELSE")==0){
@@ -675,46 +677,114 @@ void getEachExpression(node* tree, ScopeStack* stack){
                 printf("Error: if condition must be of type bool\n");
                 exit(1);
             }
+
+            // 3AC
+            node* block_if = getBlock(tree->children[i+2]->children[1]);
+            node* block_else = getBlock(tree->children[i+2]->children[2]);
+
+            getExpCode(exp->exp_node,NULL,NULL);
+            tree->code = gen(14
+                ,exp->exp_node->code, "\nifz ", exp->exp_node->var, " goto ", tree->beginLabel,
+                block_if->code, "goto ", tree->nextLabel, "\n",
+                tree->beginLabel, ":", block_else->code, tree->nextLabel, ":\n");
+
+            root->code = gen(2,root->code, tree->code);
+
             child->token = "(IF-ELSE-DONE";
             return;
-        }else if(strcmp(child->token,"(DO-WHILE-INIT")==0){
-            node* exp = tree->children[i+2]->children[0];
+        }else if(strcmp(child->token,"(DO-WHILE")==0){
+            node* exp = tree->children[i+2]->children[2]->children[0];
             getExpType(exp->exp_node,stack);
             if (exp->exp_node->result != BOOL_T){
                 printf("Error: do-while condition must be of type bool\n");
                 exit(1);
             }
-            child->token = "(DO-WHILE-INIT-DONE";
+
+            // 3AC
+            node* block = getBlock(tree->children[i+4]->children[2]->children[0]);
+            getExpCode(exp->exp_node,NULL,NULL);
+            tree->code = gen(15
+                ,"\n", tree->beginLabel, ":\n", block->code, "\n", exp->exp_node->code, "\nifz ", 
+                exp->exp_node->var, " goto ", tree->nextLabel, "\ngoto ", tree->beginLabel, "\n", 
+                tree->nextLabel, "\n");
+
+            root->code = gen(2,root->code, tree->code);
+
+            child->token = "(DO-WHILE-DONE";
             return;
-        }else if(strcmp(child->token,"(WHILE-INIT")==0){
-            node* exp = tree->children[i+2]->children[0];
+        }else if(strcmp(child->token,"(WHILE")==0){
+            node* exp = tree->children[i+2]->children[2]->children[0];
             getExpType(exp->exp_node,stack);
             if (exp->exp_node->result != BOOL_T){
                 printf("Error: while condition must be of type bool\n");
                 exit(1);
             }
-            child->token = "(WHILE-INIT-DONE";
+
+            // 3AC
+            node* block = getBlock(tree->children[i+4]->children[2]->children[0]);
+            getExpCode(exp->exp_node,NULL,NULL);
+                    
+            // (14, "\n\t", $$->begin, ":", $3(exp)->code, "\n\tifz ", $3(exp)->var, " GoTo ", 
+            // $$->nextLabel, $5(block)->code, "\n\tGoTo ", $$->begin, "\n\t", $$->nextLabel, ":");
+
+            tree->code = gen(15
+                ,"\n", tree->beginLabel, ":\n", exp->exp_node->code, "\nifz ", 
+                exp->exp_node->var, " goto ", tree->nextLabel,"\n", block->code, "\ngoto ", 
+                tree->beginLabel, "\n", 
+                tree->nextLabel, ":\n");
+
+            root->code = gen(2,root->code, tree->code);
+
+            child->token = "(WHILE-DONE";
             return;
-        }else if(strcmp(child->token,"(FOR-INIT")==0){
-            node* exp = tree->children[i+3]->children[0];
+        }else if(strcmp(child->token,"(FOR")==0){
+            node* exp = tree->children[i+2]->children[3]->children[0];
             getExpType(exp->exp_node,stack);
             if (exp->exp_node->result != BOOL_T){
                 printf("Error: for condition must be of type bool\n");
                 exit(1);
             }
-            child->token = "(FOR-INIT-DONE";
+
+
+
+            // 3AC
+            node* block = getBlock(tree->children[i+4]->children[2]->children[0]);
+            node* ass_1 = tree->children[i+2]->children[2]->children[0];
+            node* ass_2 = tree->children[i+2]->children[5]->children[0];
+            getExpCode(exp->exp_node,NULL,NULL);
+
+            //(17, "\t", $$->begin, ":\n", $5(exp)->code, "\n\tifz ", $5(exp)->var, 
+            // " GoTo ", $$->nextLabel, "\n", $9(block)->code, "\n", $7(exp-update)->code,
+            //  "\n\tGoTo ", 
+            // $$->begin, "\n\t", $$->nextLabel, ":");
+            
+            tree->code = gen(19,"\n",ass_1->code,"\n",
+                tree->beginLabel, ":\n", exp->exp_node->code, "\nifz ",
+                exp->exp_node->var, " goto ", tree->nextLabel, "\n",
+                block->code, "\n", ass_2->code, "\ngoto ", tree->beginLabel,
+                "\n", tree->nextLabel, ":\n"
+            );
+
+
+
+            root->code = gen(2,root->code, tree->code);
+            child->token = "(FOR-DONE";
             return;
-        }else if(strcmp(child->token,"#assignment_st")==0){
+        }else if((strcmp(child->token,"#assignment_st")==0) || (strcmp(child->token,"#assignment_st_for")==0)){
             node* exp = child->children[3]->children[0];
             node* lhs = child->children[1];
             getExpType(exp->exp_node,stack);
-            // part 14 is here
+            // 3AC
+            getExpCode(exp->exp_node,NULL,NULL);
+           
             if (strcmp(lhs->token,"#derefId")==0){
                 Var* var = getVarOrExit(stack, lhs->children[1]->token);
                 if (dereferenceOf(var->type) != exp->exp_node->result){
                     printf("Error: assignment type is not the same as the variable type\n");
                     exit(1);
                 }
+                //3AC
+                child->code = gen(6, exp->exp_node->code, "\n*", var->name, " = ", exp->exp_node->var, "\n");
             }else if (strcmp(lhs->token,"#stringAtIndex")==0){
                 Var* var = getVarOrExit(stack, lhs->children[0]->token);
                 if (var->type != STRING_T){
@@ -727,10 +797,19 @@ void getEachExpression(node* tree, ScopeStack* stack){
                     printf("Error: index of string must be of type INT\n");
                     exit(1);
                 }
-                if (exp->exp_node->result != CHAR_T || exp->exp_node->result != NULL_T){
-                    printf("Error: STRING[index] can only be assigned to CHAR or NULL\n");
+                if (!(exp->exp_node->result == CHAR_T || exp->exp_node->result == NULL_T)){
+                    printf("Error: STRING[index] can only be assigned to CHAR or NULL but %s is passed\n", getTypeAsString(exp->exp_node->result));
                     exit(1);
                 }
+                //3AC
+                getExpCode(index->exp_node,NULL,NULL);
+                //for exmaple : x[i]=y
+                // t1 = i (from index->exp_node->var)
+                // t2(beginLabel) = x + t1
+                // *t2 = y
+                child->code = gen(13, index->exp_node->code, "\n", lhs->beginLabel, " = ",
+                    var->name, " + ", index->exp_node->var, 
+                    exp->exp_node->code, "\n*", lhs->beginLabel, " = ", exp->exp_node->var, "\n");
 
             }else{
                 // var
@@ -739,7 +818,12 @@ void getEachExpression(node* tree, ScopeStack* stack){
                     printf("Error: the assignment type does not match the variable type.\n\t\tThe specific mismatched types are %s=%s\n", getTypeAsString(var->type), getTypeAsString(exp->exp_node->result));
                     exit(1);
                 }
+                //3AC
+                child->code = gen(6, exp->exp_node->code, "\n", var->name, " = ", exp->exp_node->var, "\n");
+                
             }
+            if (!(strcmp(child->token,"#assignment_st_for")==0))//this is not for the for loop
+                root->code = gen(2,root->code, child->code);
 
             child->token = "#assignment_st-DONE";
             return;
@@ -761,7 +845,12 @@ void getEachExpression(node* tree, ScopeStack* stack){
             }
             node* exp_list = tree->children[i+3];
             VarArr* args = newVarArr();
-            check_function_args(exp_list,stack,args);
+
+            //3AC
+            node* allExpCode = mknode1("#allExpCode");
+            allExpCode->code = "";
+
+            check_function_args(exp_list,stack,args,allExpCode);
             int numOfPassedArgs = args->len;
             int numOfFuncArgs = func->varArr->len;
             if (numOfPassedArgs != numOfFuncArgs){
@@ -774,22 +863,82 @@ void getEachExpression(node* tree, ScopeStack* stack){
                     exit(1);
                 }
             }
+            
+
+            // 3AC
+
+            int sizeOfArgs = 0;
+            for(int i=0; i<numOfPassedArgs; i++){
+                sizeOfArgs += get_size_of_var(args->vars[i]->type);
+            }
+
+            char sizeOfArgsStr[10];
+            sprintf(sizeOfArgsStr, "%d", sizeOfArgs);
+
+            if (func->returnType == VOID_T){
+                child->code = gen(7, allExpCode->code, "LCall ", functionName, "\n", "PopParams ", sizeOfArgsStr, "\n");
+                root->code = gen(2,root->code, child->code);
+            }else{
+                child->code = allExpCode->code;
+                child->beginLabel = functionName;
+                child->nextLabel = gen(3,"PopParams ", sizeOfArgsStr, "\n");
+            }
+
             child->token = "function call -DONE";
+        }else if(strcmp(child->token,"#statements")==0 && child->children[0] &&strcmp(child->children[0]->token,"#new_block")==0){
+            root->code = gen(2,
+                root->code, child->children[0]->children[2]->children[0]->code);
+            // printWhereCodeIs(child);
+            child->token = "#statements-DONE";
         }
     }
 }
 
-void check_function_args(node* tree, ScopeStack* stack, VarArr* args){
+void printWhereCodeIs(node* tree){
+    if (tree == NULL) return;
+    if (tree->children == NULL) return;
+    for (int i = 0; i < tree->child_num; i++) {
+        node* child = tree->children[i];
+        if (child->code != NULL)
+            printf("***********************\nchild->code: for %s and it's parent is %s \n%s\n***********************", child->token,child->code,tree->token);
+    }
+    for (int i = 0; i < tree->child_num; i++) {
+        printWhereCodeIs(tree->children[i]);
+    }
+}
+
+int get_size_of_var(enum Type type){
+    if (type == INT_T) return 4;
+    if (type == REAL_T) return 8;
+    if (type == CHAR_T) return 1;
+    if (type == BOOL_T) return 1;
+    if (type == STRING_T) return 4;
+    if (type == INT_P_T) return 8;
+    if (type == REAL_P_T) return 8;
+    if (type == CHAR_P_T) return 8;
+    if (type == VOID_T) return 0;
+    if (type == NONE_T) return 0;
+    printf("Error: unknown type\n");
+    exit(1);
+}
+
+void check_function_args(node* tree, ScopeStack* stack, VarArr* args, node* allExpCode){
     if (tree == NULL) return;
     if (tree->children == NULL) return; 
     if (strcmp(tree->token,"#exp_list")==0){     
         node* exp = tree->children[0];
         getExpType(exp->exp_node,stack);
         appendVarArr(args, newVar("",exp->exp_node->result));
+
+        //3AC
+        getExpCode(exp->exp_node,NULL,NULL);
+        allExpCode->code = gen(6,
+            allExpCode->code, exp->exp_node->code, "\n", "PushParam ", exp->exp_node->var, "\n"
+            );
     }
     for (int i = 0; i < tree->child_num; i++) {
         if (!(strcmp(tree->children[i]->token,"#func_call_as_exp")==0))
-            check_function_args(tree->children[i],stack,args);
+            check_function_args(tree->children[i],stack,args,allExpCode);
     }
     return;
 }
@@ -1198,14 +1347,72 @@ char* freshVar(){
     return var;
 }
 
+char* freshLabel(){
+    static int i = 1;
+    char* label = malloc(100);
+    sprintf(label, "L%d", i);
+    i++;
+    return label;
+}
+int tab = 0;
+char* gen(int arg_count, ...)
+{
+    va_list args;
+    char* result = malloc(1);
+    *result = '\0';
 
-void getExpCode(expressionNode* expressionNode){
+    if (tab > 0)
+    {
+        int size = strlen(result) + strlen("\t") + 1;
+        char* temp = realloc(result, size);
+        if (!temp)
+        {
+            printf("failed to realloc.\n");
+            exit(1);
+        }
+        result = temp;
+        strcat(result, "\t");
+    }
+
+    va_start(args, arg_count);
+    for (int i = 0; i < arg_count; i++)
+    {
+        char* next = va_arg(args, char*);
+        if (next){
+            if (strlen(next) > 0)
+            {
+                int size = strlen(result) + strlen(next) + 1;
+                char *temp = realloc(result, size);
+                if (!temp)
+                {
+                    printf("failed to realloc.\n");
+                    exit(1);
+                }
+                result = temp;
+                strcat(result, next);
+            }
+
+        }
+    }
+    va_end(args);
+
+    return result;
+}
+
+
+void getExpCode(expressionNode* expressionNode, char* beginLabel, char* nextLabel){
     if (expressionNode->leaf_type != NOT_LEAF) {
         // we are dealing with leaf
         if (expressionNode->leaf_type == ID_LEAF){
-            expressionNode->var = expressionNode->name;
+            // expressionNode->var = expressionNode->name;
         
         }else if(expressionNode->leaf_type == FUNC_CALL){
+            node* func = expressionNode->func->children[0];
+            expressionNode->code = gen(10,
+                "\n", func->code, "\n", expressionNode->var,
+                " = ", "LCall ", func->beginLabel, "\n",
+                func->nextLabel, "\n"
+            );
             
         }else if(expressionNode->leaf_type == LEN_OF_STR){
             
@@ -1219,74 +1426,97 @@ void getExpCode(expressionNode* expressionNode){
         return;
     }
     if (expressionNode->left != NULL)
-        getExpCode(expressionNode->left->exp_node);
+        getExpCode(expressionNode->left->exp_node,beginLabel,nextLabel);
     if (expressionNode->right != NULL)
-        getExpCode(expressionNode->right->exp_node);
+        getExpCode(expressionNode->right->exp_node,beginLabel,nextLabel);
     
     if (strcmp(expressionNode->name,"+")==0 || strcmp(expressionNode->name,"-")==0 || strcmp(expressionNode->name,"*")==0 || strcmp(expressionNode->name,"/")==0 || strcmp(expressionNode->name,"<=")==0 || strcmp(expressionNode->name,">=")==0 || strcmp(expressionNode->name,"<")==0 || strcmp(expressionNode->name,">")==0 || strcmp(expressionNode->name,"==")==0 || strcmp(expressionNode->name,"!=")==0){
-        char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr(expressionNode->left->exp_node->var, plusStr(" ",expressionNode->name)), plusStr(" ",expressionNode->right->exp_node->var)));
-        char* prevCode = plusStr(
-            plusStr(expressionNode->left->exp_node->code, "\n"), plusStr(expressionNode->right->exp_node->code, "\n")
-            );
+        // char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr(expressionNode->left->exp_node->var, plusStr(" ",expressionNode->name)), plusStr(" ",expressionNode->right->exp_node->var)));
+        char* operation = gen (7,expressionNode->var," = ",expressionNode->left->exp_node->var, " ", expressionNode->name, " ", expressionNode->right->exp_node->var);
+        // char* prevCode = plusStr(plusStr(expressionNode->left->exp_node->code, "\n"), plusStr(expressionNode->right->exp_node->code, "\n"));
+        char* prevCode = gen(4,expressionNode->left->exp_node->code, "\n", expressionNode->right->exp_node->code, "\n");
         expressionNode->code = plusStr(prevCode, operation);
-        // printf("-------------------\n");
-        // printf("inner code for %s\n%s\n", expressionNode->name, expressionNode->code);
-        // printf("inner prevCode\n%s\n", prevCode);
-        // printf("inner operation\n%s\n", operation);
-        // printf("exp left var '%s' for %s\n", expressionNode->left->exp_node->var, expressionNode->name);
-        // printf("exp right var '%s' for %s\n", expressionNode->right->exp_node->var, expressionNode->name);
-        // printf("exp left code '%s' for %s\n", expressionNode->left->code, expressionNode->name);
-        // printf("exp right code '%s' for %s\n", expressionNode->right->code, expressionNode->name);
-        // printf("-------------------\n");
-        // if (strcmp(expressionNode->name,"/")==0){
-        //     printf("div between %s and %s\n", expressionNode->left->exp_node->var, expressionNode->right->exp_node->var);
-        // }
 
     
     }else if (strcmp(expressionNode->name, "unary-")==0){
         char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr("-",expressionNode->left->exp_node->var), ""));
         char* prevCode = plusStr(expressionNode->left->exp_node->code, "\n");
         expressionNode->code = plusStr(prevCode, operation);
-        // printf("unary- code '%s'\n", expressionNode->code);
-        // printf("unary- operation '%s'\n", operation);
+    
     }else if (strcmp(expressionNode->name, "unary+")==0){
         char* operation = plusStr(plusStr(expressionNode->var," = "),plusStr(plusStr("+",expressionNode->left->exp_node->var), ""));
         char* prevCode = plusStr(expressionNode->left->exp_node->code, "\n");
         expressionNode->code = plusStr(prevCode, operation);
     }
     else if (strcmp(expressionNode->name, "&&")==0){
-        checkUpdateBoolOperation(expressionNode, "&&");
+        // char* localBeginLabel = freshLabel();
+        // char* localNextLabel = freshLabel();
+        // char* shortCircuitEval = gen(12,
+        //         "\nifz ", expressionNode->left->exp_node->var, " goto ", nextLabel, "\n",
+        //         "\nifz ", expressionNode->right->exp_node->var, " goto ", nextLabel, "\n",
+        //         expressionNode->var, " = TRUE\n");
+        
+        
+        
+        // char* prevCode = gen(4,expressionNode->left->exp_node->code, "\n", expressionNode->right->exp_node->code, "\n");
+        // expressionNode->code = plusStr(prevCode, shortCircuitEval);
+
+
+        char* operation = gen (7,expressionNode->var," = ",expressionNode->left->exp_node->var, " ", expressionNode->name, " ", expressionNode->right->exp_node->var);
+        char* prevCode = gen(4,expressionNode->left->exp_node->code, "\n", expressionNode->right->exp_node->code, "\n");
+        expressionNode->code = plusStr(prevCode, operation);
+
+
+
     }else if (strcmp(expressionNode->name, "||")==0){
-        checkUpdateBoolOperation(expressionNode, "||");
+        // char* shortCircuitEval = gen(12,
+        //         "\nif ", expressionNode->left->exp_node->var, " goto ", beginLabel, "\n",
+        //         "\nif ", expressionNode->right->exp_node->var, " goto ", beginLabel, "\n",
+        //         expressionNode->var, " = FALSE\n");
+        // char* prevCode = gen(4,expressionNode->left->exp_node->code, "\n", expressionNode->right->exp_node->code, "\n");
+        // expressionNode->code = plusStr(prevCode, shortCircuitEval);
+
+        char* operation = gen (7,expressionNode->var," = ",expressionNode->left->exp_node->var, " ", expressionNode->name, " ", expressionNode->right->exp_node->var);
+        char* prevCode = gen(4,expressionNode->left->exp_node->code, "\n", expressionNode->right->exp_node->code, "\n");
+        expressionNode->code = plusStr(prevCode, operation);
+
+        
+        
     
     }else if (strcmp(expressionNode->name, "!")==0){
-        if (expressionNode->left->exp_node->result != BOOL_T){
-            printf("Error: operator ! can only be used on BOOL\n");
-            exit(1);
-        }
-        expressionNode->result = BOOL_T;
+        expressionNode->code = gen(7,
+            "\n",expressionNode->left->exp_node->code, "\n", expressionNode->var,
+            " = !", expressionNode->left->exp_node->var, "\n"
+        );
+        
     }else if (strcmp(expressionNode->name, "addressOfChar")==0){
-        if (expressionNode->left->exp_node->result != STRING_T){
-            printf("Error: operator [] can only be used on STRING\n");
-            exit(1);
-        }
-        if (expressionNode->right->exp_node->result != INT_T){
-            printf("Error: operator [] can only be used with INT\n");
-            exit(1);
-        }
+
+        // 3AC
+        expressionNode->code = gen(9,
+            "\n",expressionNode->right->exp_node->code, "\n", expressionNode->left->exp_node->var,
+            " = ", expressionNode->left->exp_node->name, " + ", expressionNode->right->exp_node->var, "\n"
+            );
         expressionNode->result = CHAR_P_T;
     }else if (strcmp(expressionNode->name, "charAt")==0){
-        if (expressionNode->left->exp_node->result != STRING_T){
-            printf("Error: operator [] can only be used on STRING\n");
-            exit(1);
-        }
-        if (expressionNode->right->exp_node->result != INT_T){
-            printf("Error: operator [] can only be used with INT\n");
-            exit(1);
-        }
+        // 3AC
+        // str[exp]
+        // t1 = exp
+        // t2 = str + t1
+        // t3 = *t2
+        
+        expressionNode->code = gen(13,
+            "\n",expressionNode->right->exp_node->code, "\n", expressionNode->left->exp_node->var,
+            " = ", expressionNode->left->exp_node->name, " + ", expressionNode->right->exp_node->var, "\n",
+            expressionNode->var, " = *", expressionNode->left->exp_node->var, "\n"
+            );
+
         expressionNode->result = CHAR_T;
      }else if (strcmp(expressionNode->name, "dereference")==0){
         expressionNode->result = dereferenceOf(expressionNode->left->exp_node->result);
+        expressionNode->code = gen(7,
+            "\n",expressionNode->left->exp_node->code, "\n", expressionNode->var,
+            " = *", expressionNode->left->exp_node->var, "\n"
+        );
      }
 
 }
